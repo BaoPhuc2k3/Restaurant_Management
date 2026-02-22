@@ -1,0 +1,113 @@
+/* .ui-input {
+  background-color: #efebeb;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 14px;
+  font-size: 15px;
+}
+
+.ui-input:focus {
+  outline: none;
+  border-color: #ff7b00;
+}
+
+.input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.input-icon {
+    position: absolute;
+    left: 8px;
+    top: 35%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #666;
+    pointer-events: none;
+} */
+
+/* Input cần chừa không gian cho icon */
+/* .input-with-icon {
+    padding-left: 30px; 
+} */
+
+/* .ui-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #ff7b00; 
+  color: white;
+  font-weight: bold;
+  border: none;
+  margin-top: 8px;
+  cursor: pointer;
+} */
+
+/* .ui-button:hover {
+  background: #ff6a00;
+}
+
+.ui-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+
+  border: 1px solid #dadada;
+  background: #ff7b00;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.ui-button img {
+  display: block;         
+  width: 20px;            
+  height: 20px;
+}
+
+
+
+.auth-box {
+  width: 80%;
+}
+
+.auth-title {
+  text-align: center;
+  color: #ff7b00;
+  margin-bottom: 20px;
+}
+
+.auth-link {
+  color: #ff7b00;
+  font-size: 17px;
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.auth-small-row {
+  text-align: right;
+  margin-bottom: 10px;
+}
+.auth-link-register {
+  text-align: left;
+}
+
+.auth-google {
+  margin-top: 2px;
+  text-align: center;
+  gap: 8px;
+} */
