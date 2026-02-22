@@ -5,7 +5,7 @@ export default function OpenTableModal({ table, onConfirm, onCancel }) {
       <div className="bg-white p-6 rounded shadow-lg w-96 text-center">
 
         <h2 className="text-xl font-bold mb-4">
-          Mở {table.name} ?
+          Mở {table.tableName} ?
         </h2>
 
         <p className="mb-6 text-gray-600">

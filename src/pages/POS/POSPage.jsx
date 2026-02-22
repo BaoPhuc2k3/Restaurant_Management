@@ -274,6 +274,7 @@ const handleConfirmOpenTable = () => {
         <div className="w-1/3 bg-gray-50 p-4 border-l border-r">
           <MenuList
             menuItems={filteredItems}
+            categories={categories}
             onAddItem={handleAddItem}
           />
         </div>
