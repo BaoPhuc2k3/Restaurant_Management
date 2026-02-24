@@ -51,7 +51,7 @@ useEffect(() => {
 }, []);
 
   console.log(tables);
-    
+  ;
   // ===============================
   // SELECT TABLE
   // ===============================
@@ -119,71 +119,95 @@ const handleConfirmOpenTable = () => {
   // ADD ITEM
   // ===============================
   const handleAddItem = (item) => {
+  if (!selectedTable || selectedTable.status === 1) return alert("Bàn chưa mở");
 
-    if (!selectedTable) {
-      alert("Vui lòng chọn bàn");
-      return;
+  setOrders(prev => {
+    // Lấy dữ liệu cũ của bàn này ra, nếu chưa có thì tạo mới theo cấu trúc chuẩn
+    const currentData = prev[selectedTable.id] || { items: [], customerPhone: "", selectedVoucher: null };
+    const tableItems = currentData.items;
+
+    const existing = tableItems.find(i => i.id === item.id);
+    let updatedItems;
+
+    if (existing) {
+      updatedItems = tableItems.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+    } else {
+      updatedItems = [...tableItems, { ...item, quantity: 1 }];
     }
 
-    if (selectedTable.status !== "occupied") {
-      alert("Bàn chưa mở");
-      return;
-    }
-
-    setOrders(prev => {
-      const tableOrders = prev[selectedTable.id] || [];
-      const existing = tableOrders.find(i => i.id === item.id);
-
-      let updated;
-
-      if (existing) {
-        updated = tableOrders.map(i =>
-          i.id === item.id
-            ? { ...i, quantity: i.quantity + 1 }
-            : i
-        );
-      } else {
-        updated = [...tableOrders, { ...item, quantity: 1 }];
-      }
-
-      return {
-        ...prev,
-        [selectedTable.id]: updated
-      };
-    });
-  };
+    return {
+      ...prev,
+      [selectedTable.id]: { ...currentData, items: updatedItems } // Cập nhật lại thuộc tính items
+    };
+  });
+};
 
   const handleIncrease = (itemId) => {
-    setOrders(prev => ({
+  setOrders(prev => {
+    const currentData = prev[selectedTable.id];
+    if (!currentData) return prev;
+
+    const updatedItems = currentData.items.map(item =>
+      item.id === itemId
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
+    );
+
+    return {
       ...prev,
-      [selectedTable.id]: prev[selectedTable.id].map(item =>
-        item.id === itemId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
-    }));
-  };
+      [selectedTable.id]: { ...currentData, items: updatedItems }
+    };
+  });
+};
 
   const handleDecrease = (itemId) => {
-    setOrders(prev => ({
+  setOrders(prev => {
+    const currentData = prev[selectedTable.id];
+    if (!currentData) return prev;
+
+    const updatedItems = currentData.items
+      .map(item =>
+        item.id === itemId
+          ? { ...item, quantity: item.quantity - 1 }
+          : item
+      )
+      .filter(item => item.quantity > 0); // Xóa món nếu số lượng về 0
+
+    return {
       ...prev,
-      [selectedTable.id]: prev[selectedTable.id]
-        .map(item =>
-          item.id === itemId
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
-        )
-        .filter(item => item.quantity > 0)
-    }));
-  };
+      [selectedTable.id]: { ...currentData, items: updatedItems }
+    };
+  });
+};
 
   const handleRemoveItem = (itemId) => {
-    setOrders(prev => ({
+  setOrders(prev => {
+    const currentData = prev[selectedTable.id];
+    if (!currentData) return prev;
+
+    return {
       ...prev,
-      [selectedTable.id]: prev[selectedTable.id]
-        .filter(item => item.id !== itemId)
-    }));
-  };
+      [selectedTable.id]: { 
+        ...currentData, 
+        items: currentData.items.filter(item => item.id !== itemId) 
+      }
+    };
+  });
+};
+
+  // Trong file POSPage.js
+
+const handleUpdateOrderInfo = (tableId, info) => {
+  setOrders(prev => {
+    // Lấy order hiện tại của bàn này, nếu chưa có thì tạo object mặc định
+    const currentData = prev[tableId] || { items: [], customerPhone: "", selectedVoucher: null };
+    
+    return {
+      ...prev,
+      [tableId]: { ...currentData, ...info } // Ghi đè SĐT hoặc Voucher mới vào
+    };
+  });
+};
 
   // ===============================
   // PAYMENT
@@ -232,9 +256,14 @@ const handleConfirmOpenTable = () => {
   const handleFinalPayment = async (paymentData) => {
     try {
       // 1. Gọi API lưu hóa đơn (Ví dụ)
-      // await api.post("/invoices", { tableId: selectedTable.id, ...paymentData });
+      const response = await fetch("https://localhost:72917291/api/order/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(checkoutPayload)
+    });
 
-      // 2. Cập nhật trạng thái bàn về Trống (1)
+      if (response.ok) {
+        // 2. Cập nhật trạng thái bàn về Trống (1)
       await updateTableStatus(selectedTable.id, 1);
 
       // 3. Xóa order local
@@ -250,8 +279,9 @@ const handleConfirmOpenTable = () => {
       setIsPaymentModalOpen(false);
       setSelectedTableId(null);
       alert("Thanh toán hoàn tất!");
+      }
     } catch (error) {
-      alert("Lỗi khi xử lý thanh toán");
+      alert("Lỗi kết nối server khi xử lý thanh toán");
     }
   };
   return (
@@ -282,12 +312,18 @@ const handleConfirmOpenTable = () => {
         <div className="w-1/3 bg-white p-4">
           <OrderPanel
             table={selectedTable}
-            order={selectedOrder}
+            order={orders[selectedTableId]?.items || []}
+            customerPhone={orders[selectedTableId]?.customerPhone || ""}
+            selectedVoucher={orders[selectedTableId]?.selectedVoucher || null}
             onIncrease={handleIncrease}
             onDecrease={handleDecrease}
             onRemove={handleRemoveItem}
+            onUpdateOrderInfo={(info) =>
+              handleUpdateOrderInfo(selectedTableId, info)
+            }
             onPayment={handleOpenPaymentModal}
           />
+
         </div>
 
       </div>
@@ -304,7 +340,7 @@ const handleConfirmOpenTable = () => {
       {isPaymentModalOpen && (
         <PaymentModal 
           table={selectedTable}
-          order={selectedOrder}
+          order={orders[selectedTableId]?.items || []}
           onClose={() => setIsPaymentModalOpen(false)}
           onConfirm={handleFinalPayment}
         />
