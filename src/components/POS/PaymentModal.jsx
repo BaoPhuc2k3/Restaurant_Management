@@ -5,176 +5,127 @@ export default function PaymentModal({
   order,
   summary,
   customerPhone,
-  cashGiven,
-  change,
   onClose,
   onConfirm
 }) {
+  // Chỉ có 2 trạng thái: CASH (Tiền mặt) và TRANSFER (Chuyển khoản)
   const [paymentMethod, setPaymentMethod] = useState("CASH");
 
   const now = useMemo(() => new Date(), []);
 
+  // ==========================================
+  // CẤU HÌNH TÀI KHOẢN NGÂN HÀNG CỦA QUÁN (VIETQR)
+  // ==========================================
+  const BANK_ID = "MB"; // Mã ngân hàng (VD: MB, VCB, TCB, VPB, ACB...)
+  const ACCOUNT_NO = "0987654321"; // Số tài khoản của quán
+  const ACCOUNT_NAME = "TEN CHU QUAN"; // Tên chủ tài khoản (Không dấu)
+  
+  // Tạo link ảnh QR động dựa trên tổng tiền
+  const qrCodeUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${summary?.finalAmount}&addInfo=Thanh toan ban ${table?.tableName}&accountName=${ACCOUNT_NAME}`;
+
   const handleConfirm = () => {
     onConfirm({
-      paymentMethod,
-      finalAmount: summary.finalAmount,
-      cashGiven,
-      change
+      paymentMethod, // Sẽ gửi "CASH" hoặc "TRANSFER" lên POSPage
+      finalAmount: summary.finalAmount
     });
   };
+
   if (!summary || !order) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-
-      <div className="bg-white w-105 rounded-lg shadow-xl overflow-hidden">
-
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-white w-[400px] rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        
         {/* HEADER */}
-        <div className="px-4 py-3 border-b flex justify-between items-center">
-          <h2 className="font-semibold text-lg">
-            Xác nhận thanh toán
+        <div className="px-4 py-3 border-b flex justify-between items-center bg-gray-50">
+          <h2 className="font-bold text-lg text-gray-800">
+            Thanh toán - {table?.tableName}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-black"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-red-500 font-bold text-xl">
             ✕
           </button>
         </div>
 
-        {/* BILL PREVIEW */}
-        <div className="p-4 text-sm">
-
-          <div className="text-center font-semibold text-base mb-1">
-            HÓA ĐƠN BÁN HÀNG
+        {/* BILL PREVIEW (Đã ẩn Tiền khách đưa/Tiền thối theo yêu cầu trước) */}
+        <div className="p-5 text-sm overflow-y-auto flex-1">
+          <div className="text-center font-bold text-lg mb-1">HÓA ĐƠN BÁN HÀNG</div>
+          <div className="text-center text-xs text-gray-500 mb-4">
+            {now.toLocaleDateString("vi-VN")} - {now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
           </div>
 
-          <div className="text-center text-xs text-gray-500 mb-3">
-            {now.toLocaleDateString("vi-VN")} -{" "}
-            {now.toLocaleTimeString("vi-VN", {
-              hour: "2-digit",
-              minute: "2-digit"
-            })}
-          </div>
-
-          <div className="text-xs mb-2">
-            <div>Bàn: {table?.tableName}</div>
-            {customerPhone && <div>SĐT: {customerPhone}</div>}
-          </div>
-
-          {/* TABLE HEADER */}
-          <div className="grid grid-cols-12 text-xs font-semibold border-b pb-1 mb-1">
-            <div className="col-span-5">Mặt hàng</div>
-            <div className="col-span-2 text-center">SL</div>
-            <div className="col-span-2 text-right">Đ.Giá</div>
-            <div className="col-span-3 text-right">T.Tiền</div>
-          </div>
-
-          {/* ITEMS */}
-          <div className="max-h-40 overflow-y-auto mb-2">
+          {/* ITEM LIST */}
+          <div className="space-y-2 mb-4">
             {order.map(item => (
-              <div
-                key={item.id}
-                className="grid grid-cols-12 text-xs py-1"
-              >
-                <div className="col-span-5 truncate">
-                  {item.name}
+              <div key={item.id} className="flex justify-between text-sm">
+                <div className="flex-1">
+                  <span className="font-medium">{item.name}</span>
+                  <span className="text-gray-500 ml-2">x{item.quantity}</span>
                 </div>
-
-                <div className="col-span-2 text-center">
-                  {item.quantity}
-                </div>
-
-                <div className="col-span-2 text-right">
-                  {item.price.toLocaleString()}
-                </div>
-
-                <div className="col-span-3 text-right font-medium">
-                  {(item.price * item.quantity).toLocaleString()}
+                <div className="font-medium">
+                  {(item.price * item.quantity).toLocaleString()}đ
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="border-t pt-2 space-y-1 text-xs">
-
-            <div className="flex justify-between">
+          <div className="border-t pt-3 space-y-2 text-sm">
+            <div className="flex justify-between text-gray-600">
               <span>Tổng tiền hàng:</span>
               <span>{summary.subtotal.toLocaleString()}đ</span>
             </div>
-
-            {summary.percentDiscount > 0 && (
+            
+            {(summary.percentDiscount > 0 || summary.voucherDiscount > 0) && (
               <div className="flex justify-between text-red-500">
-                <span>Giảm %:</span>
-                <span>-{summary.percentDiscount.toLocaleString()}đ</span>
+                <span>Giảm giá:</span>
+                <span>-{(summary.percentDiscount + summary.voucherDiscount).toLocaleString()}đ</span>
               </div>
             )}
 
-            {summary.voucherDiscount > 0 && (
-              <div className="flex justify-between text-red-500">
-                <span>Voucher:</span>
-                <span>-{summary.voucherDiscount.toLocaleString()}đ</span>
-              </div>
-            )}
-
-            <div className="flex justify-between font-semibold text-base pt-1 border-t mt-1">
-              <span>TỔNG CỘNG:</span>
-              <span>
-                {summary.finalAmount.toLocaleString()}đ
-              </span>
+            <div className="flex justify-between font-bold text-xl pt-2 border-t mt-2 text-teal-700">
+              <span>CẦN THANH TOÁN:</span>
+              <span>{summary.finalAmount.toLocaleString()}đ</span>
             </div>
-
-            {paymentMethod === "CASH" && (
-              <>
-                <div className="flex justify-between">
-                  <span>Khách đưa:</span>
-                  <span>{cashGiven.toLocaleString()}đ</span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Tiền thối:</span>
-                  <span>{change.toLocaleString()}đ</span>
-                </div>
-              </>
-            )}
-
           </div>
         </div>
 
-        {/* PAYMENT METHOD */}
-        <div className="px-4 py-3 border-t bg-gray-50 text-sm">
-
-          <div className="mb-2 font-medium">
-            Hình thức thanh toán
-          </div>
-
-          <div className="flex gap-4 mb-3">
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                checked={paymentMethod === "CASH"}
-                onChange={() => setPaymentMethod("CASH")}
-              />
-              Tiền mặt
+        {/* PHƯƠNG THỨC THANH TOÁN & QR CODE */}
+        <div className="p-4 border-t bg-gray-100">
+          <div className="font-semibold mb-3 text-gray-700">Hình thức thanh toán:</div>
+          
+          <div className="flex gap-4 mb-4">
+            <label className={`flex-1 flex items-center justify-center gap-2 py-2 border rounded cursor-pointer font-medium transition-all ${paymentMethod === "CASH" ? "bg-teal-600 text-white border-teal-600" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
+              <input type="radio" className="hidden" value="CASH" checked={paymentMethod === "CASH"} onChange={() => setPaymentMethod("CASH")} />
+              💵 Tiền mặt
             </label>
 
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                checked={paymentMethod === "TRANSFER"}
-                onChange={() => setPaymentMethod("TRANSFER")}
-              />
-              Chuyển khoản
+            <label className={`flex-1 flex items-center justify-center gap-2 py-2 border rounded cursor-pointer font-medium transition-all ${paymentMethod === "TRANSFER" ? "bg-teal-600 text-white border-teal-600" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
+              <input type="radio" className="hidden" value="TRANSFER" checked={paymentMethod === "TRANSFER"} onChange={() => setPaymentMethod("TRANSFER")} />
+              💳 Chuyển khoản
             </label>
           </div>
+
+          {/* HIỂN THỊ MÃ QR NẾU CHỌN CHUYỂN KHOẢN */}
+          {paymentMethod === "TRANSFER" && (
+            <div className="bg-white p-3 rounded-lg border shadow-sm mb-4 flex flex-col items-center animate-fade-in">
+              <p className="text-xs text-gray-500 mb-2 font-medium">Khách hàng quét mã QR để thanh toán</p>
+              <img 
+                src={qrCodeUrl} 
+                alt="VietQR" 
+                className="w-48 h-48 object-contain border rounded p-1"
+                loading="lazy"
+              />
+              <p className="text-lg font-bold text-red-600 mt-2">{summary.finalAmount.toLocaleString()} VNĐ</p>
+            </div>
+          )}
 
           <button
             onClick={handleConfirm}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-bold text-base shadow-md transition-all active:scale-95"
           >
-            XÁC NHẬN & IN HÓA ĐƠN
+            {paymentMethod === "CASH" ? "XÁC NHẬN ĐÃ THU TIỀN MẶT" : "XÁC NHẬN KHÁCH ĐÃ CHUYỂN KHOẢN"}
           </button>
         </div>
+
       </div>
     </div>
   );
