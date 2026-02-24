@@ -4,13 +4,13 @@ export default function TableCard({ table, selected, onClick }) {
       onClick={() => onClick(table)}
       className={`p-4 rounded shadow cursor-pointer text-center
       ${selected ? "border-2 border-blue-500" : ""}
-      ${table.status === "occupied"
+      ${table.status === 2
           ? "bg-orange-500 text-white"
           : "bg-gray-100"}`}
     >
       <div className="font-semibold">{table.tableName}</div>
       <div className="text-sm">
-        {table.status === "occupied" ? "Có khách" : "Trống"}
+        {table.status === 2 ? "Có khách" : "Trống"}
       </div>
     </div>
   );

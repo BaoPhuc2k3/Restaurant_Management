@@ -1,289 +1,315 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Sidebar from "../../components/POS/Sidebar";
 import TableArea from "../../components/POS/TableArea";
 import MenuList from "../../components/POS/MenuList";
 import OrderPanel from "../../components/POS/OrderPanel";
 import OpenTableModal from "../../components/POS/OpenTableModal";
 import PaymentModal from "../../components/POS/PaymentModal";
-// import { tables as initialTables, menuItems } from "../../data/mockData";
+
 import { getAllTables, updateTableStatus } from "../../API/Service/tablesService";
 import { getAllMenus, getAllMenuItems } from "../../API/Service/menuServices";
+import api from "../../API/axios";
+
+/* ============================================= */
+/* CONSTANTS                                     */
+/* ============================================= */
+
+const TABLE_STATUS = {
+  AVAILABLE: 1,
+  OCCUPIED: 2,
+  // RESERVED: 3
+};
+
+const createEmptyOrder = () => ({
+  items: [],
+  customerPhone: "",
+  selectedVoucher: null
+});
+
+/* ============================================= */
+/* COMPONENT                                     */
+/* ============================================= */
 
 export default function POSPage() {
 
-  const [tables, setTables] = useState([]);
-  const [categories, setCategories] = useState([]); // State cho Danh mục (Menus)
-  const [allMenuItems, setAllMenuItems] = useState([]); // Toàn bộ món ăn từ DB
-  const [filteredItems, setFilteredItems] = useState([]); // Món ăn hiển thị sau khi lọc
-  const [activeCategoryId, setActiveCategoryId] = useState(0); // Tab đang chọn (0 = Tất cả)
+  /* ======================= STATE ======================= */
 
-  
+  const [tables, setTables] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
+
+  const [activeCategoryId, setActiveCategoryId] = useState(0);
+
   const [selectedTableId, setSelectedTableId] = useState(null);
   const [orders, setOrders] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  const [modalState, setModalState] = useState({
+    openTable: false,
+    payment: false
+  });
+
   const [tableToOpen, setTableToOpen] = useState(null);
-
-  const selectedTable = tables.find(t => t.id === selectedTableId);
-  const selectedOrder = selectedTable
-    ? orders[selectedTable.id] || []
-    : [];
+  const [paymentSummary, setPaymentSummary] = useState(null);
 
 
-useEffect(() => {
-  const loadData = async () => {
-    try {
-      const [tablesData, menusData, itemsData] = await Promise.all([
-        getAllTables(),
-        getAllMenus(),
-        getAllMenuItems()
-      ]);
-      
-      setTables(tablesData);
-      setCategories(menusData);
-      setAllMenuItems(itemsData);
-      setFilteredItems(itemsData); // Mặc định hiện tất cả
-    } catch (error) {
-      console.error("Lỗi tải dữ liệu hệ thống:", error);
-    }
-  };
-  loadData();
-}, []);
+  /* ======================= DERIVED ======================= */
 
-  console.log(tables);
-  ;
-  // ===============================
-  // SELECT TABLE
-  // ===============================
-  const handleSelectTable = (table) => {
+  const selectedTable = useMemo(
+    () => tables.find(t => t.id === selectedTableId),
+    [tables, selectedTableId]
+  );
 
-    // Nếu click lần 2 cùng 1 bàn
+  const selectedOrder = useMemo(() => {
+    if (!selectedTableId) return createEmptyOrder();
+    return orders[selectedTableId] || createEmptyOrder();
+  }, [orders, selectedTableId]);
+
+  const filteredMenuItems = useMemo(() => {
+    if (activeCategoryId === 0) return menuItems;
+    return menuItems.filter(i => i.menuId === activeCategoryId);
+  }, [menuItems, activeCategoryId]);
+
+  /* ======================= LOAD DATA ======================= */
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [tablesData, menusData, itemsData] = await Promise.all([
+          getAllTables(),
+          getAllMenus(),
+          getAllMenuItems()
+        ]);
+
+        setTables(tablesData);
+        setCategories(menusData);
+        setMenuItems(itemsData);
+      } catch (error) {
+        console.error("System load error:", error);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  /* ======================= TABLE SELECT ======================= */
+
+  const handleSelectTable = useCallback((table) => {
+
     if (selectedTableId === table.id) {
+      const hasOrder = orders[table.id]?.items?.length > 0;
 
-      const hasOrder =
-        orders[table.id] && orders[table.id].length > 0;
-
-      // Nếu bàn trống → hỏi mở
-      if (table.status === 1) {
+      if (table.status === TABLE_STATUS.AVAILABLE) {
         setTableToOpen(table);
-        setIsModalOpen(true);
+        setModalState(prev => ({ ...prev, openTable: true }));
         return;
       }
 
-      // Nếu bàn đã mở và có hóa đơn → không cho mở lại
-      if (table.status === 3 && hasOrder) {
+      if (table.status === TABLE_STATUS.OCCUPIED && hasOrder) {
         return;
       }
     }
 
     setSelectedTableId(table.id);
-  };
 
+  }, [selectedTableId, orders]);
 
-  const handleSelectCategory = (categoryId) => {
-  setActiveCategoryId(categoryId);
-  if (categoryId === 0) {
-    setFilteredItems(allMenuItems);
-  } else {
-    setFilteredItems(allMenuItems.filter(item => item.menuId === categoryId));
-  }
-};
+  /* ======================= OPEN TABLE ======================= */
 
-// ===============================
-// CONFIRM OPEN TABLE
-// ===============================
-const handleConfirmOpenTable = () => {
+  const handleConfirmOpenTable = useCallback(async () => {
 
-  const hasOrder =
-    orders[tableToOpen.id] &&
-    orders[tableToOpen.id].length > 0;
+  if (!tableToOpen) return;
 
-  // Nếu đã có hóa đơn → không mở lại
-    if (hasOrder) {
-      setIsModalOpen(false);
-      return;
-    }
+  try {
+
+    await updateTableStatus(tableToOpen.id, TABLE_STATUS.OCCUPIED);
 
     setTables(prev =>
       prev.map(t =>
         t.id === tableToOpen.id
-          ? { ...t, status: "occupied" }
+          ? { ...t, status: TABLE_STATUS.OCCUPIED }
           : t
       )
     );
 
-    setIsModalOpen(false);
-  };
+    setSelectedTableId(tableToOpen.id);
 
-  // ===============================
-  // ADD ITEM
-  // ===============================
-  const handleAddItem = (item) => {
-  if (!selectedTable || selectedTable.status === 1) return alert("Bàn chưa mở");
+    setModalState(prev => ({ ...prev, openTable: false }));
 
-  setOrders(prev => {
-    // Lấy dữ liệu cũ của bàn này ra, nếu chưa có thì tạo mới theo cấu trúc chuẩn
-    const currentData = prev[selectedTable.id] || { items: [], customerPhone: "", selectedVoucher: null };
-    const tableItems = currentData.items;
+  } catch (err) {
+    alert("Mở bàn thất bại");
+  }
 
-    const existing = tableItems.find(i => i.id === item.id);
-    let updatedItems;
+}, [tableToOpen]);
 
-    if (existing) {
-      updatedItems = tableItems.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
-    } else {
-      updatedItems = [...tableItems, { ...item, quantity: 1 }];
-    }
+  /* ======================= ORDER UPDATE ======================= */
 
-    return {
-      ...prev,
-      [selectedTable.id]: { ...currentData, items: updatedItems } // Cập nhật lại thuộc tính items
-    };
-  });
-};
+  const updateOrder = useCallback((tableId, updater) => {
+    setOrders(prev => {
+      const current = prev[tableId] || createEmptyOrder();
+      const updated = typeof updater === "function"
+        ? updater(current)
+        : { ...current, ...updater };
 
-  const handleIncrease = (itemId) => {
-  setOrders(prev => {
-    const currentData = prev[selectedTable.id];
-    if (!currentData) return prev;
+      return { ...prev, [tableId]: updated };
+    });
+  }, []);
 
-    const updatedItems = currentData.items.map(item =>
-      item.id === itemId
-        ? { ...item, quantity: item.quantity + 1 }
-        : item
-    );
+  /* ======================= ADD ITEM ======================= */
 
-    return {
-      ...prev,
-      [selectedTable.id]: { ...currentData, items: updatedItems }
-    };
-  });
-};
+  const handleAddItem = useCallback((item) => {
 
-  const handleDecrease = (itemId) => {
-  setOrders(prev => {
-    const currentData = prev[selectedTable.id];
-    if (!currentData) return prev;
+    if (!selectedTable) return;
 
-    const updatedItems = currentData.items
-      .map(item =>
-        item.id === itemId
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-      .filter(item => item.quantity > 0); // Xóa món nếu số lượng về 0
-
-    return {
-      ...prev,
-      [selectedTable.id]: { ...currentData, items: updatedItems }
-    };
-  });
-};
-
-  const handleRemoveItem = (itemId) => {
-  setOrders(prev => {
-    const currentData = prev[selectedTable.id];
-    if (!currentData) return prev;
-
-    return {
-      ...prev,
-      [selectedTable.id]: { 
-        ...currentData, 
-        items: currentData.items.filter(item => item.id !== itemId) 
-      }
-    };
-  });
-};
-
-  // Trong file POSPage.js
-
-const handleUpdateOrderInfo = (tableId, info) => {
-  setOrders(prev => {
-    // Lấy order hiện tại của bàn này, nếu chưa có thì tạo object mặc định
-    const currentData = prev[tableId] || { items: [], customerPhone: "", selectedVoucher: null };
-    
-    return {
-      ...prev,
-      [tableId]: { ...currentData, ...info } // Ghi đè SĐT hoặc Voucher mới vào
-    };
-  });
-};
-
-  // ===============================
-  // PAYMENT
-  // ===============================
-  // const handlePayment = () => {
-
-  //   if (!selectedTable) return;
-
-  //   const hasOrder =
-  //     orders[selectedTable.id] &&
-  //     orders[selectedTable.id].length > 0;
-
-  //   if (!hasOrder) {
-  //     alert("Không có hóa đơn để thanh toán");
-  //     return;
-  //   }
-
-  //   // Xóa order
-  //   setOrders(prev => {
-  //     const updated = { ...prev };
-  //     delete updated[selectedTable.id];
-  //     return updated;
-  //   });
-
-  //   // Trả bàn về trống
-  //   setTables(prev =>
-  //     prev.map(t =>
-  //       t.id === selectedTable.id
-  //         ? { ...t, status: "available" }
-  //         : t
-  //     )
-  //   );
-
-  //   // Bỏ chọn bàn
-  //   setSelectedTableId(null);
-  // };
-
-  const handleOpenPaymentModal = () => {
-    if (!selectedTable || selectedOrder.length === 0) {
-      alert("Không có gì để thanh toán!");
+    if (selectedTable.status !== TABLE_STATUS.OCCUPIED) {
+      alert("Bàn chưa mở");
       return;
     }
-    setIsPaymentModalOpen(true);
-  };
 
-  const handleFinalPayment = async (paymentData) => {
-    try {
-      // 1. Gọi API lưu hóa đơn (Ví dụ)
-      const response = await fetch("https://localhost:72917291/api/order/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(checkoutPayload)
+    updateOrder(selectedTable.id, current => {
+
+      const existing = current.items.find(i => i.id === item.id);
+
+      let newItems;
+
+      if (existing) {
+        newItems = current.items.map(i =>
+          i.id === item.id
+            ? { ...i, quantity: i.quantity + 1 }
+            : i
+        );
+      } else {
+        newItems = [...current.items, { ...item, quantity: 1 }];
+      }
+
+      return { ...current, items: newItems };
     });
 
-      if (response.ok) {
-        // 2. Cập nhật trạng thái bàn về Trống (1)
-      await updateTableStatus(selectedTable.id, 1);
+  }, [selectedTable, updateOrder]);
 
-      // 3. Xóa order local
-      setOrders(prev => {
-        const newOrders = { ...prev };
-        delete newOrders[selectedTable.id];
-        return newOrders;
-      });
+  /* ======================= ITEM MODIFY ======================= */
 
-      // 4. Cập nhật giao diện bàn
-      setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: 1 } : t));
-      
-      setIsPaymentModalOpen(false);
-      setSelectedTableId(null);
-      alert("Thanh toán hoàn tất!");
-      }
-    } catch (error) {
-      alert("Lỗi kết nối server khi xử lý thanh toán");
+  const handleIncrease = useCallback((itemId) => {
+    if (!selectedTable) return;
+
+    updateOrder(selectedTable.id, current => ({
+      ...current,
+      items: current.items.map(i =>
+        i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i
+      )
+    }));
+
+  }, [selectedTable, updateOrder]);
+
+  const handleDecrease = useCallback((itemId) => {
+    if (!selectedTable) return;
+
+    updateOrder(selectedTable.id, current => ({
+      ...current,
+      items: current.items
+        .map(i =>
+          i.id === itemId
+            ? { ...i, quantity: i.quantity - 1 }
+            : i
+        )
+        .filter(i => i.quantity > 0)
+    }));
+
+  }, [selectedTable, updateOrder]);
+
+  const handleRemoveItem = useCallback((itemId) => {
+    if (!selectedTable) return;
+
+    updateOrder(selectedTable.id, current => ({
+      ...current,
+      items: current.items.filter(i => i.id !== itemId)
+    }));
+
+  }, [selectedTable, updateOrder]);
+
+  /* ======================= UPDATE ORDER INFO ======================= */
+
+  const handleUpdateOrderInfo = useCallback((info) => {
+    if (!selectedTable) return;
+    updateOrder(selectedTable.id, info);
+  }, [selectedTable, updateOrder]);
+
+  /* ======================= PAYMENT ======================= */
+
+  const handleOpenPayment = useCallback((paymentData) => {
+  if (!selectedTable || selectedOrder.items.length === 0) {
+    alert("Không có hóa đơn để thanh toán");
+    return;
+  }
+  // paymentData ở đây chính là object { summary, cashGiven, change } từ OrderPanel gửi lên
+  setPaymentSummary(paymentData); 
+  setModalState(prev => ({ ...prev, payment: true }));
+}, [selectedTable, selectedOrder]);
+
+  // Thay thế hàm handleFinalPayment (khoảng dòng 240)
+const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
+  if (!selectedTable || !paymentSummary) return;
+
+  try {
+    // 1. CHUẨN BỊ PAYLOAD KHỚP VỚI C# BACKEND
+    // Tính tổng số tiền được giảm từ % và Voucher
+    const totalDiscount = paymentSummary.summary.percentDiscount + paymentSummary.summary.voucherDiscount;
+
+    const checkoutPayload = {
+      tableId: selectedTable.id,
+      phoneNumber: selectedOrder.customerPhone || null, // Tự động xử lý có hoặc không có SĐT
+      usedVoucherId: selectedOrder.selectedVoucher?.id || null,
+      paymentMethod: paymentMethod, 
+      totalAmount: paymentSummary.summary.subtotal,
+      discountAmount: totalDiscount,
+      finalAmount: paymentSummary.summary.finalAmount,
+      items: selectedOrder.items.map(i => ({
+        menuItemId: i.id,
+        quantity: i.quantity,
+        price: i.price
+      }))
+    };
+
+    // 2. GỌI API ĐẾN BACKEND
+    // Import `api` từ axios của bạn lên đầu file nếu chưa có
+    const response = await api.post("/orders/checkout", checkoutPayload);
+
+    // 3. XÓA BÀN VÀ RESET GIAO DIỆN
+    await updateTableStatus(selectedTable.id, TABLE_STATUS.AVAILABLE);
+
+    setOrders(prev => {
+      const clone = { ...prev };
+      delete clone[selectedTable.id];
+      return clone;
+    });
+
+    setTables(prev =>
+      prev.map(t =>
+        t.id === selectedTable.id ? { ...t, status: TABLE_STATUS.AVAILABLE } : t
+      )
+    );
+
+    setSelectedTableId(null);
+    setPaymentSummary(null);
+    setModalState(prev => ({ ...prev, payment: false }));
+
+    // 4. HIỂN THỊ THÔNG BÁO DỰA VÀO C# TRẢ VỀ
+    const earnedPoints = response.data.earnedPoints;
+    if (checkoutPayload.phoneNumber && earnedPoints > 0) {
+      alert(`Thanh toán thành công!\nKhách hàng được cộng ${earnedPoints} điểm.`);
+    } else {
+      alert("Thanh toán thành công!");
     }
-  };
+
+  } catch (err) {
+    console.error("Lỗi thanh toán:", err);
+    // Bắt lỗi từ Backend trả về (ví dụ: Không đủ điểm, voucher hết hạn)
+    const errorMsg = err.response?.data?.message || "Lỗi kết nối tới hệ thống.";
+    alert("Thanh toán thất bại: " + errorMsg);
+  }
+}, [selectedTable, selectedOrder, paymentSummary]);
+
+  /* ======================= RENDER ======================= */
+
   return (
     <div className="h-screen flex bg-gray-100">
 
@@ -291,9 +317,9 @@ const handleUpdateOrderInfo = (tableId, info) => {
         <Sidebar />
       </div>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
 
-        <div className="w-1/3 bg-white p-4">
+        <div className="w-[27%] bg-white p-3 border-r">
           <TableArea
             tables={tables}
             selectedTableId={selectedTableId}
@@ -301,50 +327,54 @@ const handleUpdateOrderInfo = (tableId, info) => {
           />
         </div>
 
-        <div className="w-1/3 bg-gray-50 p-4 border-l border-r">
+        <div className="w-[31%] bg-gray-50 p-3 border-r">
           <MenuList
-            menuItems={filteredItems}
+            menuItems={filteredMenuItems}
             categories={categories}
+            activeCategoryId={activeCategoryId}
+            onSelectCategory={setActiveCategoryId}
             onAddItem={handleAddItem}
           />
         </div>
 
-        <div className="w-1/3 bg-white p-4">
+        <div className="flex-1 bg-white p-4">
           <OrderPanel
             table={selectedTable}
-            order={orders[selectedTableId]?.items || []}
-            customerPhone={orders[selectedTableId]?.customerPhone || ""}
-            selectedVoucher={orders[selectedTableId]?.selectedVoucher || null}
+            order={selectedOrder.items}
+            customerPhone={selectedOrder.customerPhone}
+            selectedVoucher={selectedOrder.selectedVoucher}
             onIncrease={handleIncrease}
             onDecrease={handleDecrease}
             onRemove={handleRemoveItem}
-            onUpdateOrderInfo={(info) =>
-              handleUpdateOrderInfo(selectedTableId, info)
-            }
-            onPayment={handleOpenPaymentModal}
+            onUpdateOrderInfo={handleUpdateOrderInfo}
+            onPayment={(summary) => handleOpenPayment(summary)}
           />
-
         </div>
 
       </div>
 
-      {isModalOpen && (
+      {modalState.openTable && (
         <OpenTableModal
           table={tableToOpen}
           onConfirm={handleConfirmOpenTable}
-          onCancel={() => setIsModalOpen(false)}
+          onCancel={() =>
+            setModalState(prev => ({ ...prev, openTable: false }))
+          }
         />
       )}
 
-      {/* Hiển thị Modal khi cần */}
-      {isPaymentModalOpen && (
-        <PaymentModal 
-          table={selectedTable}
-          order={orders[selectedTableId]?.items || []}
-          onClose={() => setIsPaymentModalOpen(false)}
-          onConfirm={handleFinalPayment}
-        />
-      )}
+      {modalState.payment && (
+  <PaymentModal
+    table={selectedTable}
+    order={selectedOrder.items}
+    summary={paymentSummary?.summary}           // ĐÃ SỬA
+    customerPhone={selectedOrder.customerPhone}
+    cashGiven={paymentSummary?.cashGiven}       // ĐÃ SỬA
+    change={paymentSummary?.change}             // ĐÃ SỬA
+    onClose={() => setModalState(prev => ({ ...prev, payment: false }))}
+    onConfirm={handleFinalPayment}
+  />
+)};
 
     </div>
   );

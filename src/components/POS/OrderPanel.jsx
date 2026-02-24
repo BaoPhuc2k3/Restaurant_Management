@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import api from "../../API/axios";
+import PaymentModal from "../../components/POS/PaymentModal";
+
 
 /* ============================= */
 /* UTIL: CALCULATE SUMMARY       */
@@ -45,6 +47,12 @@ const calculateOrderSummary = ({
 };
 
 /* ============================= */
+/* MEMO: RENDER ORDER ROWS      */
+/* ============================= */
+
+
+
+/* ============================= */
 /* COMPONENT                     */
 /* ============================= */
 
@@ -66,6 +74,7 @@ export default function OrderPanel({
   const [discountPercent, setDiscountPercent] = useState(0);
   const [extraFee, setExtraFee] = useState(0);
   const [cashGiven, setCashGiven] = useState(0);
+  // const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   /* ============================= */
   /* LOAD VOUCHERS                 */
@@ -164,6 +173,66 @@ export default function OrderPanel({
     []
   );
 
+  const renderedOrderRows = useMemo(() => {
+  return order.map((item, index) => {
+    const lineTotal = item.price * item.quantity;
+
+    return (
+      <div
+        key={item.id}
+        className="grid grid-cols-12 items-center text-sm px-3 py-2 border-b hover:bg-gray-50"
+      >
+        <div className="col-span-1 text-gray-500">
+          {index + 1}
+        </div>
+
+        <div className="col-span-4 font-medium truncate">
+          {item.name}
+        </div>
+
+        <div className="col-span-3 flex justify-center items-center gap-2">
+          <button
+            onClick={() => onDecrease(item.id)}
+            className="w-6 h-6 bg-red-500 text-white rounded text-xs"
+          >
+            −
+          </button>
+
+          <span className="w-6 text-center">
+            {item.quantity}
+          </span>
+
+          <button
+            onClick={() => onIncrease(item.id)}
+            className="w-6 h-6 bg-green-500 text-white rounded text-xs"
+          >
+            +
+          </button>
+        </div>
+
+        <div className="col-span-2 text-right text-gray-600">
+          {item.price.toLocaleString()}
+        </div>
+
+        <div className="col-span-2 flex justify-end items-center gap-2">
+          <span className="font-semibold text-teal-600">
+            {lineTotal.toLocaleString()}
+          </span>
+
+          <button
+            onClick={() => onRemove(item.id)}
+            className="text-red-500 text-xs"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    );
+  });
+}, [order, onIncrease, onDecrease, onRemove]);
+
+  
+
   if (!table) {
     return (
       <div className="flex items-center justify-center h-full text-gray-400">
@@ -221,169 +290,188 @@ export default function OrderPanel({
       </div>
 
       {/* ================= ITEM LIST ================= */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {order.length === 0 && (
-          <div className="text-center text-gray-400 mt-10">
-            Chưa có món
-          </div>
-        )}
+<div className="flex-1 flex flex-col overflow-hidden">
 
-        {order.map((item, index) => (
-          <div
-            key={item.id}
-            className="flex items-center border-b py-2 text-sm"
-          >
-            <div className="w-6">{index + 1}</div>
-            <div className="flex-1 font-medium">
-              {item.name}
-            </div>
+  {/* HEADER STICKY */}
+  <div className="grid grid-cols-12 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-2 border-b sticky top-0 z-10">
+    <div className="col-span-1">#</div>
+    <div className="col-span-4">Món</div>
+    <div className="col-span-3 text-center">SL</div>
+    <div className="col-span-2 text-right">ĐG</div>
+    <div className="col-span-2 text-right">TT</div>
+  </div>
 
-            <div className="flex items-center gap-2 w-24 justify-center">
-              <button
-                onClick={() => onDecrease(item.id)}
-                className="bg-red-500 text-white w-6 h-6 rounded"
-              >
-                −
-              </button>
-
-              {item.quantity}
-
-              <button
-                onClick={() => onIncrease(item.id)}
-                className="bg-green-500 text-white w-6 h-6 rounded"
-              >
-                +
-              </button>
-            </div>
-
-            <div className="w-20 text-right">
-              {item.price.toLocaleString()}
-            </div>
-
-            <div className="w-24 text-right font-semibold">
-              {(item.price * item.quantity).toLocaleString()}
-            </div>
-
-            <button
-              onClick={() => onRemove(item.id)}
-              className="ml-2 text-red-500"
-            >
-              ×
-            </button>
-          </div>
-        ))}
+  {/* BODY */}
+  <div className="flex-1 overflow-y-auto">
+    {order.length === 0 ? (
+      <div className="text-center text-gray-400 mt-10 text-sm">
+        Chưa có món
       </div>
+    ) : (
+      renderedOrderRows
+    )}
+  </div>
+
+</div>
 
       {/* ================= FOOTER ================= */}
-      <div className="border-t bg-gray-50 p-4">
+<div className="border-t bg-gray-50 p-4 text-sm">
 
-        {/* Discount Area */}
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <input
-            type="number"
-            placeholder="Giảm %"
-            value={discountPercent}
-            onChange={e =>
-              setDiscountPercent(Number(e.target.value))
-            }
-            className="border rounded px-2 py-1"
-          />
+  {/* ===== DISCOUNT AREA (2 CỘT NGANG) ===== */}
+  <div className="grid grid-cols-2 gap-4 mb-3">
 
-          <input
-            type="number"
-            placeholder="Phụ thu"
-            value={extraFee}
-            onChange={e => setExtraFee(Number(e.target.value))}
-            className="border rounded px-2 py-1"
-          />
-        </div>
+    <div className="flex items-center gap-2">
+      <label className="w-20 text-gray-600">
+        Giảm %
+      </label>
+      <input
+        type="number"
+        value={discountPercent}
+        onChange={e => setDiscountPercent(Number(e.target.value))}
+        className="flex-1 border rounded px-2 py-1 text-sm"
+      />
+    </div>
 
-        {/* Voucher */}
-        <select
-          value={selectedVoucher?.id || 0}
-          onChange={e => {
-            const v = validVouchers.find(
-              x => x.id === Number(e.target.value)
-            );
-            onUpdateOrderInfo({ selectedVoucher: v || null });
-          }}
-          className="w-full mb-3 border rounded px-2 py-1"
-        >
-          <option value={0}>Không áp dụng voucher</option>
-          {validVouchers.map(v => (
-            <option key={v.id} value={v.id}>
-              {v.code}
-            </option>
-          ))}
-        </select>
+    <div className="flex items-center gap-2">
+      <label className="w-20 text-gray-600">
+        Phụ thu
+      </label>
+      <input
+        type="number"
+        value={extraFee}
+        onChange={e => setExtraFee(Number(e.target.value))}
+        className="flex-1 border rounded px-2 py-1 text-sm"
+      />
+    </div>
 
-        {/* Summary */}
-        <div className="flex justify-between text-sm mb-1">
-          <span>Tổng tiền hàng:</span>
-          <span>{summary.subtotal.toLocaleString()}đ</span>
-        </div>
+  </div>
 
-        <div className="flex justify-between items-center mb-3">
-          <span className="font-semibold">
-            Khách phải trả:
-          </span>
-          <span className="text-2xl font-bold text-red-600">
-            {summary.finalAmount.toLocaleString()}đ
-          </span>
-        </div>
+  {/* ===== VOUCHER (FULL WIDTH) ===== */}
+  <div className="flex items-center gap-2 mb-3">
+    <label className="w-20 text-gray-600">
+      Voucher
+    </label>
+    <select
+      value={selectedVoucher?.id || 0}
+      onChange={e => {
+        const v = validVouchers.find(
+          x => x.id === Number(e.target.value)
+        );
+        onUpdateOrderInfo({ selectedVoucher: v || null });
+      }}
+      className="flex-1 border rounded px-2 py-1 text-sm"
+    >
+      <option value={0}>Không áp dụng</option>
+      {validVouchers.map(v => (
+        <option key={v.id} value={v.id}>
+          {v.code}
+        </option>
+      ))}
+    </select>
+  </div>
 
-        {/* Cash */}
-        <div className="grid grid-cols-2 gap-4 mb-2">
-          <input
-            type="number"
-            placeholder="Khách đưa"
-            value={cashGiven}
-            onChange={e =>
-              setCashGiven(Number(e.target.value))
-            }
-            className="border rounded px-2 py-1"
-          />
-          <div className="bg-gray-200 rounded px-2 py-1">
-            {change.toLocaleString()}đ
-          </div>
-        </div>
+  {/* ===== SUMMARY ===== */}
+  <div className="border-t pt-2 space-y-1 mb-3">
 
-        <div className="flex gap-2 mb-3">
-          {[50000, 100000, 200000, 500000].map(amount => (
-            <button
-              key={amount}
-              onClick={() => handleQuickCash(amount)}
-              className="bg-gray-200 px-3 py-1 rounded text-sm"
-            >
-              +{amount / 1000}k
-            </button>
-          ))}
-        </div>
+    <div className="flex justify-between text-gray-600">
+      <span>Tổng tiền hàng</span>
+      <span>{summary.subtotal.toLocaleString()}đ</span>
+    </div>
 
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button className="flex-1 bg-red-500 text-white py-2 rounded">
-            Hủy đơn
-          </button>
+    <div className="flex justify-between font-semibold">
+      <span>Khách phải trả</span>
+      <span className="text-red-600 text-lg">
+        {summary.finalAmount.toLocaleString()}đ
+      </span>
+    </div>
 
-          {/* <button className="flex-1 bg-orange-500 text-white py-2 rounded">
-            Chuyển/Gộp
-          </button> */}
+  </div>
 
-          <button
-            onClick={() =>
-              onPayment({
-                finalAmount: summary.finalAmount,
-                cashGiven,
-                change
-              })
-            }
-            className="flex-1 bg-green-600 text-white py-2 rounded"
-          >
-            Thanh toán
-          </button>
-        </div>
+  {/* ===== CASH AREA (2 CỘT NGANG) ===== */}
+  <div className="grid grid-cols-2 gap-4 mb-2">
+
+    <div className="flex items-center gap-2">
+      <label className="w-20 text-gray-600">
+        Khách đưa
+      </label>
+      <input
+        type="number"
+        value={cashGiven}
+        onChange={e => setCashGiven(Number(e.target.value))}
+        className="flex-1 border rounded px-2 py-1 text-sm"
+      />
+    </div>
+
+    <div className="flex items-center gap-2">
+      <label className="w-20 text-gray-600">
+        Tiền thối
+      </label>
+      <div className="flex-1 bg-gray-200 rounded px-2 py-1 text-sm">
+        {change.toLocaleString()}đ
       </div>
+    </div>
+
+  </div>
+
+  {/* ===== QUICK CASH ===== */}
+  <div className="flex gap-2 mb-3">
+    {[50000, 100000, 200000, 500000].map(amount => (
+      <button
+        key={amount}
+        onClick={() => handleQuickCash(amount)}
+        className="bg-gray-200 px-3 py-1 rounded text-xs hover:bg-gray-300"
+      >
+        +{amount / 1000}k
+      </button>
+    ))}
+  </div>
+
+  {/* ===== ACTIONS ===== */}
+  <div className="flex gap-2">
+    <button className="flex-1 bg-red-500 text-white py-2 rounded text-sm hover:bg-red-600">
+      Hủy đơn
+    </button>
+
+    <button
+  // Thay thế sự kiện onClick của nút Thanh toán ở cuối OrderPanel.jsx
+onClick={() => {
+  if (order.length === 0) return;
+
+  const cleanPhone = (customerPhone || "").trim();
+  if (cleanPhone && !/^0\d{9}$/.test(cleanPhone)) {
+    alert("SĐT không hợp lệ");
+    return;
+  }
+
+  // ĐÃ SỬA: Truyền thêm `change` lên POSPage
+  onPayment({
+    summary,
+    cashGiven,
+    change 
+  });
+}}
+  className="flex-1 bg-green-600 text-white py-2 rounded text-sm hover:bg-green-700"
+>
+  Thanh toán
+</button>
+  </div>
+
+</div>
+{/* {isPaymentOpen && (
+  <PaymentModal
+    table={table}
+    order={order}
+    summary={summary}   // 🔥 PHẢI CÓ
+    customerPhone={customerPhone}
+    cashGiven={cashGiven}
+    change={change}
+    onClose={() => setIsPaymentOpen(false)}
+    onConfirm={(payload) => {
+      onPayment(payload);
+      setIsPaymentOpen(false);
+    }}
+  />
+)} */}
     </div>
   );
 }

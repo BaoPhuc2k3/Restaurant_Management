@@ -1,70 +1,178 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
-export default function PaymentModal({ table, order, onClose, onConfirm }) {
-  const [discount, setDiscount] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("Tiền mặt");
+export default function PaymentModal({
+  table,
+  order,
+  summary,
+  customerPhone,
+  cashGiven,
+  change,
+  onClose,
+  onConfirm
+}) {
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
 
-  const total = order.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const finalAmount = total - total * (discount / 100);
+  const now = useMemo(() => new Date(), []);
+
+  const handleConfirm = () => {
+    onConfirm({
+      paymentMethod,
+      finalAmount: summary.finalAmount,
+      cashGiven,
+      change
+    });
+  };
+  if (!summary || !order) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-2xl">
-        <h2 className="text-xl font-bold border-b pb-2 mb-4">
-          Thanh toán: {table?.tableName}
-        </h2>
+    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
-        {/* Danh sách món tóm tắt */}
-        <div className="max-h-40 overflow-y-auto mb-4 text-sm">
-          {order.map((item) => (
-            <div key={item.id} className="flex justify-between py-1 border-bottom">
-              <span>{item.name} x{item.quantity}</span>
-              <span>{(item.price * item.quantity).toLocaleString()}đ</span>
-            </div>
-          ))}
-        </div>
+      <div className="bg-white w-105 rounded-lg shadow-xl overflow-hidden">
 
-        {/* Thiết lập thanh toán */}
-        <div className="space-y-3 bg-gray-50 p-3 rounded">
-          <div className="flex justify-between items-center">
-            <span>Tạm tính:</span>
-            <span className="font-semibold">{total.toLocaleString()}đ</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>Chiết khấu (%):</span>
-            <input 
-              type="number" 
-              className="w-16 border rounded px-1 text-right"
-              value={discount}
-              onChange={(e) => setDiscount(Number(e.target.value))}
-            />
-          </div>
-          <div className="flex justify-between items-center">
-            <span>Phương thức:</span>
-            <select 
-              className="border rounded p-1"
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            >
-              <option value="Tiền mặt">Tiền mặt</option>
-              <option value="Chuyển khoản">Chuyển khoản</option>
-              <option value="Thẻ">Thẻ ATM/Visa</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-between items-center text-lg font-bold text-teal-700">
-          <span>THÀNH TIỀN:</span>
-          <span>{finalAmount.toLocaleString()}đ</span>
-        </div>
-
-        <div className="mt-6 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2 bg-gray-200 rounded font-semibold">Hủy</button>
-          <button 
-            onClick={() => onConfirm({ discount, paymentMethod, finalAmount })}
-            className="flex-1 py-2 bg-teal-600 text-white rounded font-semibold hover:bg-teal-700"
+        {/* HEADER */}
+        <div className="px-4 py-3 border-b flex justify-between items-center">
+          <h2 className="font-semibold text-lg">
+            Xác nhận thanh toán
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-black"
           >
-            XÁC NHẬN
+            ✕
+          </button>
+        </div>
+
+        {/* BILL PREVIEW */}
+        <div className="p-4 text-sm">
+
+          <div className="text-center font-semibold text-base mb-1">
+            HÓA ĐƠN BÁN HÀNG
+          </div>
+
+          <div className="text-center text-xs text-gray-500 mb-3">
+            {now.toLocaleDateString("vi-VN")} -{" "}
+            {now.toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit"
+            })}
+          </div>
+
+          <div className="text-xs mb-2">
+            <div>Bàn: {table?.tableName}</div>
+            {customerPhone && <div>SĐT: {customerPhone}</div>}
+          </div>
+
+          {/* TABLE HEADER */}
+          <div className="grid grid-cols-12 text-xs font-semibold border-b pb-1 mb-1">
+            <div className="col-span-5">Mặt hàng</div>
+            <div className="col-span-2 text-center">SL</div>
+            <div className="col-span-2 text-right">Đ.Giá</div>
+            <div className="col-span-3 text-right">T.Tiền</div>
+          </div>
+
+          {/* ITEMS */}
+          <div className="max-h-40 overflow-y-auto mb-2">
+            {order.map(item => (
+              <div
+                key={item.id}
+                className="grid grid-cols-12 text-xs py-1"
+              >
+                <div className="col-span-5 truncate">
+                  {item.name}
+                </div>
+
+                <div className="col-span-2 text-center">
+                  {item.quantity}
+                </div>
+
+                <div className="col-span-2 text-right">
+                  {item.price.toLocaleString()}
+                </div>
+
+                <div className="col-span-3 text-right font-medium">
+                  {(item.price * item.quantity).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t pt-2 space-y-1 text-xs">
+
+            <div className="flex justify-between">
+              <span>Tổng tiền hàng:</span>
+              <span>{summary.subtotal.toLocaleString()}đ</span>
+            </div>
+
+            {summary.percentDiscount > 0 && (
+              <div className="flex justify-between text-red-500">
+                <span>Giảm %:</span>
+                <span>-{summary.percentDiscount.toLocaleString()}đ</span>
+              </div>
+            )}
+
+            {summary.voucherDiscount > 0 && (
+              <div className="flex justify-between text-red-500">
+                <span>Voucher:</span>
+                <span>-{summary.voucherDiscount.toLocaleString()}đ</span>
+              </div>
+            )}
+
+            <div className="flex justify-between font-semibold text-base pt-1 border-t mt-1">
+              <span>TỔNG CỘNG:</span>
+              <span>
+                {summary.finalAmount.toLocaleString()}đ
+              </span>
+            </div>
+
+            {paymentMethod === "CASH" && (
+              <>
+                <div className="flex justify-between">
+                  <span>Khách đưa:</span>
+                  <span>{cashGiven.toLocaleString()}đ</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>Tiền thối:</span>
+                  <span>{change.toLocaleString()}đ</span>
+                </div>
+              </>
+            )}
+
+          </div>
+        </div>
+
+        {/* PAYMENT METHOD */}
+        <div className="px-4 py-3 border-t bg-gray-50 text-sm">
+
+          <div className="mb-2 font-medium">
+            Hình thức thanh toán
+          </div>
+
+          <div className="flex gap-4 mb-3">
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                checked={paymentMethod === "CASH"}
+                onChange={() => setPaymentMethod("CASH")}
+              />
+              Tiền mặt
+            </label>
+
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                checked={paymentMethod === "TRANSFER"}
+                onChange={() => setPaymentMethod("TRANSFER")}
+              />
+              Chuyển khoản
+            </label>
+          </div>
+
+          <button
+            onClick={handleConfirm}
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          >
+            XÁC NHẬN & IN HÓA ĐƠN
           </button>
         </div>
       </div>
