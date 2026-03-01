@@ -12,6 +12,9 @@ import BookingTime from './pages/Booking/BookingTime'
 import BookingTable from './pages/Booking/BookingTable'
 import BookingPreOrder from './pages/Booking/BookingPreOrder'
 import POSPage from './pages/POS/POSPage'
+import CategoryManagement from './components/AdminManagement/CategoryManagement'
+import MenuItemsManagement from './components/AdminManagement/MenuItemsManagement'
+import LayoutApp from './layouts/LayoutApp'
 
 /* ======================================================== */
 /* COMPONENT BẢO VỆ ROUTE (GÁC CỔNG)                        */
@@ -57,13 +60,17 @@ function App() {
 
         {/* === CÁC TRANG BẢO MẬT (Phải có Token và Role hợp lệ) === */}
         <Route 
-          path="/pos" 
           element={
             <ProtectedRoute allowedRoles={["Admin", "Employee"]}>
-              <POSPage />
+              <LayoutApp /> {/* Hiển thị cái khung có Sidebar */}
             </ProtectedRoute>
-          } 
-        />
+          }
+        >
+          <Route path="/pos" element={<POSPage />}/>
+          <Route path="/categories" element={<CategoryManagement />} />
+          <Route path="/categories/:categoryId/menu-items" element={<MenuItemsManagement />} />
+        </Route>
+        
         
         {/* Sau này bạn có thêm trang Admin thì copy mẫu này:
         <Route 

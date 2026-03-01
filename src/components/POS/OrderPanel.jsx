@@ -65,7 +65,8 @@ export default function OrderPanel({
   onIncrease,
   onDecrease,
   onRemove,
-  onPayment
+  onPayment,
+  onCancelOrder
 }) {
   const [customerData, setCustomerData] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -428,7 +429,11 @@ export default function OrderPanel({
 
   {/* ===== ACTIONS ===== */}
   <div className="flex gap-2">
-    <button className="flex-1 bg-red-500 text-white py-2 rounded text-sm hover:bg-red-600">
+    <button 
+      onClick={onCancelOrder}
+      disabled={!table}
+      className="flex-1 bg-red-500 text-white py-2 rounded text-sm hover:bg-red-600"
+    >
       Hủy đơn
     </button>
 

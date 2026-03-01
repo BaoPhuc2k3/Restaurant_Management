@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import Sidebar from "../../components/POS/Sidebar";
 import TableArea from "../../components/POS/TableArea";
 import MenuList from "../../components/POS/MenuList";
 import OrderPanel from "../../components/POS/OrderPanel";
@@ -7,8 +6,10 @@ import OpenTableModal from "../../components/POS/OpenTableModal";
 import PaymentModal from "../../components/POS/PaymentModal";
 
 import { getAllTables, updateTableStatus } from "../../API/Service/tablesService";
-import { getAllMenus, getAllMenuItems } from "../../API/Service/menuServices";
+import { getAllMenus } from "../../API/Service/menuServices";
+import { getAllMenuItems } from "../../API/Service/menuItemServices";
 import api from "../../API/axios";
+import { FiAlertTriangle } from "react-icons/fi";
 
 /* ============================================= */
 /* CONSTANTS                                     */
@@ -45,7 +46,8 @@ export default function POSPage() {
 
   const [modalState, setModalState] = useState({
     openTable: false,
-    payment: false
+    payment: false,
+    cancelConfirm: false
   });
 
   const [tableToOpen, setTableToOpen] = useState(null);
@@ -141,6 +143,44 @@ export default function POSPage() {
 
 }, [tableToOpen]);
 
+/* ======================= CANCEL ORDER ======================= */
+
+  /* ======================= CANCEL ORDER ======================= */
+
+  // 1. Hàm này chỉ làm nhiệm vụ mở Hộp thoại ở giữa màn hình
+  const handleCancelOrder = useCallback(() => {
+    if (!selectedTable) return;
+    setModalState(prev => ({ ...prev, cancelConfirm: true }));
+  }, [selectedTable]);
+
+  // 2. Hàm này là thao tác XÓA THẬT (Chỉ chạy khi người dùng bấm nút "Có, hủy đơn" trên hộp thoại)
+  const executeCancelOrder = useCallback(async () => {
+    if (!selectedTable) return;
+
+    try {
+      await updateTableStatus(selectedTable.id, TABLE_STATUS.AVAILABLE);
+
+      setTables(prev =>
+        prev.map(t =>
+          t.id === selectedTable.id ? { ...t, status: TABLE_STATUS.AVAILABLE } : t
+        )
+      );
+
+      setOrders(prev => {
+        const clone = { ...prev };
+        delete clone[selectedTable.id];
+        return clone;
+      });
+
+      setSelectedTableId(null);
+      // Đóng hộp thoại sau khi hủy xong
+      setModalState(prev => ({ ...prev, cancelConfirm: false })); 
+
+    } catch (err) {
+      console.error("Lỗi hủy đơn:", err);
+      alert("Hủy đơn thất bại. Vui lòng kiểm tra lại kết nối mạng.");
+    }
+  }, [selectedTable]);
   /* ======================= ORDER UPDATE ======================= */
 
   const updateOrder = useCallback((tableId, updater) => {
@@ -311,11 +351,11 @@ const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
   /* ======================= RENDER ======================= */
 
   return (
-    <div className="h-screen flex bg-gray-100">
+    <div className="h-full flex bg-gray-100">
 
-      <div className="w-20 bg-teal-800 text-white">
+      {/* <div className="w-20 bg-teal-800 text-white">
         <Sidebar />
-      </div>
+      </div> */}
 
       <div className="flex flex-1 overflow-hidden">
 
@@ -348,6 +388,7 @@ const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
             onRemove={handleRemoveItem}
             onUpdateOrderInfo={handleUpdateOrderInfo}
             onPayment={(summary) => handleOpenPayment(summary)}
+            onCancelOrder={handleCancelOrder}
           />
         </div>
 
@@ -375,6 +416,47 @@ const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
     onConfirm={handleFinalPayment}
   />
 )};
+
+{/* ================= MODAL XÁC NHẬN HỦY ĐƠN ================= */}
+      {modalState.cancelConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm transition-opacity">
+          
+          <div className="bg-white rounded-xl shadow-2xl w-100 overflow-hidden transform transition-all">
+            
+            {/* Nội dung hộp thoại */}
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <FiAlertTriangle className="text-4xl" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Hủy đơn hàng?
+              </h3>
+              <p className="text-sm text-gray-500">
+                Bạn có chắc chắn muốn hủy đơn và đóng <span className="font-bold text-gray-800">{selectedTable?.name || 'bàn này'}</span> không?<br/>
+                Toàn bộ các món đã chọn sẽ bị xóa vĩnh viễn.
+              </p>
+            </div>
+
+            {/* Khu vực nút bấm */}
+            <div className="flex gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
+              <button
+                onClick={() => setModalState(prev => ({ ...prev, cancelConfirm: false }))}
+                className="flex-1 px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+              >
+                Không, giữ lại
+              </button>
+              <button
+                onClick={executeCancelOrder}
+                className="flex-1 px-4 py-2.5 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
+              >
+                Có, hủy đơn
+              </button>
+            </div>
+
+          </div>
+          
+        </div>
+      )}
 
     </div>
   );

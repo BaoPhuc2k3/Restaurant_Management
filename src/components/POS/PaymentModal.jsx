@@ -34,7 +34,7 @@ export default function PaymentModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-      <div className="bg-white w-[400px] rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white w-100 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* HEADER */}
         <div className="px-4 py-3 border-b flex justify-between items-center bg-gray-50">
