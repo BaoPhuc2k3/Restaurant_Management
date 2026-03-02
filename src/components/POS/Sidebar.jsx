@@ -46,11 +46,11 @@ export default function Sidebar() {
 
         {/* Nút Khách hàng -> Tạm thời để trống hoặc chuyển sang /customers */}
         <button 
-          onClick={() => navigate('/customers')}
-          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/customers') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
+          onClick={() => navigate('/users')}
+          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/users') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
         >
           <FiUsers className="text-2xl mb-1" />
-          <span>Khách hàng</span>
+          <span>User</span>
         </button>
 
         {/* Nút Thực đơn -> Chuyển sang /categories */}

@@ -12,6 +12,7 @@ import BookingTime from './pages/Booking/BookingTime'
 import BookingTable from './pages/Booking/BookingTable'
 import BookingPreOrder from './pages/Booking/BookingPreOrder'
 import POSPage from './pages/POS/POSPage'
+import UserManagement from './components/AdminManagement/UserManagement'
 import CategoryManagement from './components/AdminManagement/CategoryManagement'
 import MenuItemsManagement from './components/AdminManagement/MenuItemsManagement'
 import LayoutApp from './layouts/LayoutApp'
@@ -67,6 +68,7 @@ function App() {
           }
         >
           <Route path="/pos" element={<POSPage />}/>
+          <Route path="/users" element={<UserManagement />} />
           <Route path="/categories" element={<CategoryManagement />} />
           <Route path="/categories/:categoryId/menu-items" element={<MenuItemsManagement />} />
         </Route>

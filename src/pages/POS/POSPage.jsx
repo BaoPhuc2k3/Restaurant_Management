@@ -9,7 +9,7 @@ import { getAllTables, updateTableStatus } from "../../API/Service/tablesService
 import { getAllMenus } from "../../API/Service/menuServices";
 import { getAllMenuItems } from "../../API/Service/menuItemServices";
 import api from "../../API/axios";
-import { FiAlertTriangle } from "react-icons/fi";
+import { FiAlertTriangle, FiAlertCircle } from "react-icons/fi";
 
 /* ============================================= */
 /* CONSTANTS                                     */
@@ -51,6 +51,7 @@ export default function POSPage() {
   });
 
   const [tableToOpen, setTableToOpen] = useState(null);
+  const [toast, setToast] = useState(null);
   const [paymentSummary, setPaymentSummary] = useState(null);
 
 
@@ -93,6 +94,12 @@ export default function POSPage() {
     loadData();
   }, []);
 
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
   /* ======================= TABLE SELECT ======================= */
 
   const handleSelectTable = useCallback((table) => {
@@ -138,7 +145,7 @@ export default function POSPage() {
     setModalState(prev => ({ ...prev, openTable: false }));
 
   } catch (err) {
-    alert("Mở bàn thất bại");
+    showToast("Mở bàn thất bại!");
   }
 
 }, [tableToOpen]);
@@ -201,7 +208,7 @@ export default function POSPage() {
     if (!selectedTable) return;
 
     if (selectedTable.status !== TABLE_STATUS.OCCUPIED) {
-      alert("Bàn chưa mở");
+      showToast("Vui lòng mở bàn trước khi thêm món!");
       return;
     }
 
@@ -458,6 +465,17 @@ const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
         </div>
       )}
 
+      {/* ================= TOAST NOTIFICATION ================= */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-70 animate-fade-in-down">
+          <div className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3">
+            <FiAlertCircle className="text-xl" />
+            <span className="font-medium">{toast}</span>
+          </div>
+        </div>
+      )}
+      
+    
     </div>
   );
 }

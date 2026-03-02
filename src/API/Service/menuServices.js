@@ -25,7 +25,7 @@ export const toggleMenuStatus = async (id) => {
 };
 
 // Kiểm tra trước khi xóa
-export const checkMenuDeleteStatus = async (id) => {
+export const checkDeleteMenuStatus = async (id) => {
   const res = await api.get(`/menus/${id}/check-delete`);
   return res.data; // Trả về { status: 1|2|3, message: "..." }
 };
