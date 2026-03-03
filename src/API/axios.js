@@ -24,8 +24,9 @@ api.interceptors.response.use(
     return response; 
   },
   (error) => {
+    const isLoginPage = window.location.pathname === "/login";
     // Nếu API bị lỗi 401 (Hết hạn token hoặc Token không hợp lệ)
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 && !isLoginPage) {
       
       // 1. Dọn dẹp sạch sẽ LocalStorage (giống như nút Đăng xuất)
       localStorage.removeItem("token");

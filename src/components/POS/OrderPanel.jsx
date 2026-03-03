@@ -22,9 +22,9 @@ const calculateOrderSummary = ({
   let voucherDiscount = 0;
 
   if (voucher) {
-    if (voucher.type === 1) {
+    if (voucher.type === "FixedAmount") {
       voucherDiscount = voucher.discountValue;
-    } else if (voucher.type === 2) {
+    } else if (voucher.type === "Percentage") {
       voucherDiscount = subtotal * (voucher.discountValue / 100);
       if (
         voucher.maxDiscountAmount > 0 &&
@@ -365,7 +365,11 @@ export default function OrderPanel({
       <option value={0}>Không áp dụng</option>
       {validVouchers.map(v => (
         <option key={v.id} value={v.id}>
-          {v.code}
+          {v.code} - Giảm {v.type === "Percentage" ? `${v.discountValue}%` : `${v.discountValue.toLocaleString()}đ`}
+          {/* 🔥 THÊM LOGIC HIỂN THỊ GIÁ TRỊ TỐI ĐA Ở ĐÂY */}
+          {v.type === "Percentage" && v.maxDiscountAmount > 0 
+            ? ` (Tối đa ${v.maxDiscountAmount.toLocaleString()}đ)` 
+            : ""}
         </option>
       ))}
     </select>

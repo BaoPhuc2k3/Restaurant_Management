@@ -16,9 +16,9 @@ import { FiAlertTriangle, FiAlertCircle } from "react-icons/fi";
 /* ============================================= */
 
 const TABLE_STATUS = {
-  AVAILABLE: 1,
-  OCCUPIED: 2,
-  // RESERVED: 3
+  AVAILABLE: "Available",
+  OCCUPIED: "Occupied",
+  // RESERVED: "Reserved"
 };
 
 const createEmptyOrder = () => ({

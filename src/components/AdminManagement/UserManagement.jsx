@@ -191,7 +191,7 @@ export default function UserManagement() {
       {/* 1. MODAL THÊM/SỬA NHÂN VIÊN */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white w-[400px] rounded-xl shadow-2xl overflow-hidden">
+          <div className="bg-white w-100 rounded-xl shadow-2xl overflow-hidden">
             <div className="px-6 py-4 border-b bg-gray-50">
               <h2 className="text-lg font-bold text-gray-800">
                 {editingUser ? "Cập nhật nhân viên" : "Thêm nhân viên mới"}
@@ -266,8 +266,8 @@ export default function UserManagement() {
 
       {/* 2. MODAL THÔNG BÁO CHUNG (DIALOG) */}
       {dialog.isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] backdrop-blur-sm">
-          <div className="bg-white w-[400px] rounded-lg shadow-xl overflow-hidden">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm">
+          <div className="bg-white w-100 rounded-lg shadow-xl overflow-hidden">
             
             <div className={`px-6 py-4 border-b ${
               dialog.type === 'error' ? 'bg-red-50' : 

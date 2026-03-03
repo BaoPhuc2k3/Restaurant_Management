@@ -15,6 +15,7 @@ import POSPage from './pages/POS/POSPage'
 import UserManagement from './components/AdminManagement/UserManagement'
 import CategoryManagement from './components/AdminManagement/CategoryManagement'
 import MenuItemsManagement from './components/AdminManagement/MenuItemsManagement'
+import VoucherManagement from './components/AdminManagement/VoucherManagement'
 import LayoutApp from './layouts/LayoutApp'
 
 /* ======================================================== */
@@ -71,6 +72,7 @@ function App() {
           <Route path="/users" element={<UserManagement />} />
           <Route path="/categories" element={<CategoryManagement />} />
           <Route path="/categories/:categoryId/menu-items" element={<MenuItemsManagement />} />
+          <Route path="/vouchers" element={<VoucherManagement />} />
         </Route>
         
         

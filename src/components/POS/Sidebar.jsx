@@ -1,16 +1,17 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // Thêm useLocation
+import { useNavigate, useLocation } from "react-router-dom"; 
 import { 
   FiShoppingCart, 
   FiUsers, 
   FiCoffee, 
   FiPieChart, 
-  FiUser 
+  FiUser,
+  FiTag // 🔥 1. Thêm icon FiTag cho Voucher
 } from "react-icons/fi";
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const location = useLocation(); // Lấy đường dẫn URL hiện tại
+  const location = useLocation(); 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const fullName = localStorage.getItem("fullName") || "Nhân viên";
@@ -23,7 +24,6 @@ export default function Sidebar() {
     navigate("/login");
   };
 
-  // Hàm phụ trợ để kiểm tra xem nút nào đang được chọn
   const isActive = (path) => location.pathname.startsWith(path);
 
   return (
@@ -35,7 +35,7 @@ export default function Sidebar() {
       {/* CÁC NÚT CHỨC NĂNG CHÍNH */}
       <div className="flex flex-col items-center space-y-6 w-full">
         
-        {/* Nút Bán hàng -> Chuyển sang /pos */}
+        {/* Nút Bán hàng */}
         <button 
           onClick={() => navigate('/pos')}
           className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/pos') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
@@ -44,7 +44,7 @@ export default function Sidebar() {
           <span>Bán hàng</span>
         </button>
 
-        {/* Nút Khách hàng -> Tạm thời để trống hoặc chuyển sang /customers */}
+        {/* Nút User */}
         <button 
           onClick={() => navigate('/users')}
           className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/users') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
@@ -53,7 +53,7 @@ export default function Sidebar() {
           <span>User</span>
         </button>
 
-        {/* Nút Thực đơn -> Chuyển sang /categories */}
+        {/* Nút Thực đơn */}
         <button 
           onClick={() => navigate('/categories')}
           className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/categories') || isActive('/menu-items') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
@@ -62,7 +62,16 @@ export default function Sidebar() {
           <span>Thực đơn</span>
         </button>
 
-        {/* Nút Báo cáo -> Chuyển sang /reports */}
+        {/* 🔥 2. Nút Voucher MỚI THÊM */}
+        <button 
+          onClick={() => navigate('/vouchers')}
+          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/vouchers') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
+        >
+          <FiTag className="text-2xl mb-1" />
+          <span>Voucher</span>
+        </button>
+
+        {/* Nút Báo cáo */}
         <button 
           onClick={() => navigate('/reports')}
           className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/reports') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
@@ -72,7 +81,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* PHẦN PROFILE DƯỚI ĐÁY (Giữ nguyên) */}
+      {/* PHẦN PROFILE DƯỚI ĐÁY */}
       <div className="mt-auto relative flex flex-col items-center w-full">
         <button 
           onClick={() => setShowProfileMenu(!showProfileMenu)} 

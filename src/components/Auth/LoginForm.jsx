@@ -1,5 +1,5 @@
-import { FiUser, FiLock } from "react-icons/fi";
-import { useState } from "react";
+import { FiUser, FiLock, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
+import { useState, useEffect } from "react";
 import Input from "../UI/Input";
 import Button from "../UI/Button";
 import { login } from "../../API/Service/authServices";
@@ -8,54 +8,56 @@ import { useNavigate, useLocation } from "react-router-dom";
 export default function LoginForm() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Có thể dùng để quay lại trang trước đó nếu bị văng ra lúc đang làm dở
   const from = location.state?.from || null; 
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  
+  // 🔥 THÊM STATE TOAST (GIỮ NGUYÊN GIAO DIỆN CŨ)
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Ngăn trình duyệt load lại trang khi bấm Enter
-    setError("");
+    e.preventDefault(); 
+    setToast(null);
 
     if (!username || !password) {
-      setError("Vui lòng nhập đầy đủ thông tin");
+      setToast({ message: "Vui lòng nhập đầy đủ thông tin", type: "error" });
       return;
     }
 
     try {
       const data = await login(username, password);
 
-      // 1. LƯU TOÀN BỘ DỮ LIỆU BACKEND TRẢ VỀ
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
       localStorage.setItem("fullName", data.fullName);
       localStorage.setItem("username", data.username);
 
-      alert("Đăng nhập thành công!");
+      // Toast báo thành công
+      setToast({ message: "Đăng nhập thành công!", type: "success" });
 
-      // 2. ĐIỀU HƯỚNG DỰA THEO QUYỀN (ROLE)
-      if (from) {
-        navigate(from, { replace: true });
-      } else if (data.role === "Admin") {
-        navigate("/pos", { replace: true }); // Đổi URL này theo trang admin của bạn
-      } else {
-        navigate("/pos", { replace: true }); // Mặc định Employee vào POS
-      }
+      setTimeout(() => {
+        if (from) navigate(from, { replace: true });
+        else navigate("/pos", { replace: true });
+      }, 1000);
 
     } catch (err) {
-      // Bắt lỗi chính xác từ C# ném về (Ví dụ: "Account disabled" hoặc "Invalid account")
-      setError(err.response?.data || "Sai tài khoản hoặc mật khẩu");
+      const errorMsg = err.response?.data?.message || err.response?.data || "Sai tài khoản hoặc mật khẩu";
+      setToast({ message: errorMsg, type: "error" });
     }
   };
 
   return (
     <div className="w-[80%]">
-      <h2 className="text-center text-[#ff7b00] mb-5 font-bold">LOGIN</h2>
+      <h2 className="text-center text-[#ff7b00] mb-5 font-bold uppercase">LOGIN</h2>
 
-      {/* Dùng thẻ form để hỗ trợ bấm phím Enter */}
       <form onSubmit={handleLogin}>
         <div className="relative w-full mb-4">
           <FiUser className="absolute left-2 top-[50%] -translate-y-1/2 text-[18px] text-[#666] pointer-events-none" />
@@ -78,20 +80,18 @@ export default function LoginForm() {
           />
         </div>
 
-        {error && <p className="text-red-500 text-sm mb-2 text-center font-medium">{error}</p>}
+        {/* Bỏ phần text error cũ ở đây để dùng Toast cho thoáng */}
 
         <div className="text-right mb-2">
           <a href="#" className="text-[#ff7b00] text-[15px] hover:underline">Forgot password?</a>
         </div>
         
-        {/* Phần Register đã được ẩn/xóa đi hoặc chỉ hiện thông báo, vì Admin mới được tạo tài khoản */}
         <div className="text-left mb-4">
           <p className="text-sm text-gray-600">
              Vui lòng liên hệ Admin nếu chưa có tài khoản.
           </p>
         </div>
 
-        {/* Nút bấm tự trigger onSubmit của form */}
         <Button type="submit">
           LOGIN
         </Button>
@@ -112,6 +112,18 @@ export default function LoginForm() {
           Login with Google
         </Button>
       </div>
+
+      {/* 🔥 PHẦN TOAST NOTIFICATION (DẠNG TRƯỢT GÓC TRÊN) */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-[100] animate-fade-in-down">
+          <div className={`flex items-center gap-3 px-6 py-3 rounded-lg shadow-2xl text-white ${
+            toast.type === 'success' ? 'bg-teal-500' : 'bg-red-500'
+          }`}>
+            {toast.type === 'success' ? <FiCheckCircle className="text-xl" /> : <FiAlertCircle className="text-xl" />}
+            <span className="font-medium">{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
