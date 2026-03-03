@@ -284,8 +284,8 @@ export default function VoucherManagement() {
 
       {/* DIALOG THÔNG BÁO CHUNG */}
       {dialog.isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] backdrop-blur-sm">
-          <div className="bg-white w-[400px] rounded-lg shadow-xl overflow-hidden">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm">
+          <div className="bg-white w-100 rounded-lg shadow-xl overflow-hidden">
             <div className={`px-6 py-4 border-b ${dialog.type === 'error' ? 'bg-red-50' : dialog.type === 'success' ? 'bg-teal-50' : dialog.type === 'warning' ? 'bg-orange-50' : 'bg-blue-50'}`}>
               <h2 className={`text-lg font-bold ${dialog.type === 'error' ? 'text-red-700' : dialog.type === 'success' ? 'text-teal-700' : dialog.type === 'warning' ? 'text-orange-700' : 'text-blue-700'}`}>
                 {dialog.title}

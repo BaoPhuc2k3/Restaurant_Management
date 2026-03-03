@@ -6,7 +6,8 @@ import {
   FiCoffee, 
   FiPieChart, 
   FiUser,
-  FiTag // 🔥 1. Thêm icon FiTag cho Voucher
+  FiTag,
+  FiCalendar // 🔥 1. Thêm icon FiCalendar cho Chấm công
 } from "react-icons/fi";
 
 export default function Sidebar() {
@@ -62,7 +63,7 @@ export default function Sidebar() {
           <span>Thực đơn</span>
         </button>
 
-        {/* 🔥 2. Nút Voucher MỚI THÊM */}
+        {/* Nút Voucher */}
         <button 
           onClick={() => navigate('/vouchers')}
           className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/vouchers') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
@@ -79,6 +80,16 @@ export default function Sidebar() {
           <FiPieChart className="text-2xl mb-1" />
           <span>Báo cáo</span>
         </button>
+
+        {/* 🔥 2. NÚT CHẤM CÔNG MỚI THÊM */}
+        <button 
+          onClick={() => navigate('/attendance')}
+          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/attendance') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
+        >
+          <FiCalendar className="text-2xl mb-1" />
+          <span>Chấm công</span>
+        </button>
+
       </div>
 
       {/* PHẦN PROFILE DƯỚI ĐÁY */}

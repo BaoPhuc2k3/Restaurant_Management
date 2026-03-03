@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { Route, Routes, Navigate, useLocation } from 'react-router-dom' // Bổ sung Navigate và useLocation
+import { Route, Routes, Navigate, useLocation } from 'react-router-dom' 
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+
+// --- CÁC COMPONENT CỦA BẠN ---
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import HomeCustomer from './pages/HomeCustomer/HomeCustomer'
@@ -11,6 +13,7 @@ import BookingDate from './pages/Booking/BookingDate'
 import BookingTime from './pages/Booking/BookingTime'
 import BookingTable from './pages/Booking/BookingTable'
 import BookingPreOrder from './pages/Booking/BookingPreOrder'
+
 import POSPage from './pages/POS/POSPage'
 import UserManagement from './components/AdminManagement/UserManagement'
 import CategoryManagement from './components/AdminManagement/CategoryManagement'
@@ -18,24 +21,31 @@ import MenuItemsManagement from './components/AdminManagement/MenuItemsManagemen
 import VoucherManagement from './components/AdminManagement/VoucherManagement'
 import LayoutApp from './layouts/LayoutApp'
 
+// 🔥 CÁC COMPONENT CHẤM CÔNG MỚI THÊM
+import AttendancePage from './pages/Attendance/AttendancePage'
+import LoginAttendance from './pages/Attendance/LoginAttendance'
+import AttendanceManager from './components/AdminManagement/AttendanceManagement' // Đảm bảo bạn đã tạo file này
+import AttendanceDetail from './components/AdminManagement/AttendanceDetails' // Đảm bảo bạn đã tạo file này
+
 /* ======================================================== */
 /* COMPONENT BẢO VỆ ROUTE (GÁC CỔNG)                        */
 /* ======================================================== */
-const ProtectedRoute = ({ children, allowedRoles }) => {
+// 🔥 MỚI: Thêm tham số loginPath (Mặc định là "/login")
+const ProtectedRoute = ({ children, allowedRoles, loginPath = "/login" }) => {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
   const location = useLocation();
 
-  // 1. Khách vãng lai (Chưa đăng nhập) -> Đá về trang Login
+  // 1. Khách vãng lai (Chưa đăng nhập) -> Đá về trang Login tương ứng
   if (!token) {
-    // Lưu lại vị trí họ đang muốn vào (location) để Login xong trả về đúng chỗ đó
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
 
-  // 2. Đã đăng nhập nhưng sai quyền (Ví dụ: Customer cố mò vào link POS) -> Đá về trang chủ
+  // 2. Đã đăng nhập nhưng sai quyền
   if (allowedRoles && !allowedRoles.includes(role)) {
     alert("Bạn không có quyền truy cập trang này!");
-    return <Navigate to="/login" replace />;
+    // Nếu sai quyền, ưu tiên đá về màn hình chính của họ
+    return <Navigate to={loginPath} replace />; 
   }
 
   // 3. Đầy đủ quyền hạn -> Cho qua
@@ -50,7 +60,11 @@ function App() {
       <Routes>
         {/* === CÁC TRANG PUBLIC (Ai cũng vào được) === */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        
+        {/* 🔥 1. CÁNH CỬA 1: LOGIN CHO PHẦN MỀM CHẤM CÔNG */}
+        <Route path="/timekeep/login" element={<LoginAttendance />} />
+
+        {/* <Route path="/register" element={<Register />} />
         <Route path="/" element={<HomeCustomer />} />
         
         <Route path="/booking" element={<BookingLayout />}>
@@ -58,9 +72,23 @@ function App() {
           <Route path="time" element={<BookingTime />} />
           <Route path="table" element={<BookingTable />} />
           <Route path="preorder" element={<BookingPreOrder />} />
-        </Route>
+        </Route> */}
 
-        {/* === CÁC TRANG BẢO MẬT (Phải có Token và Role hợp lệ) === */}
+
+        {/* 🔥 2. CÁNH CỬA 1: TRANG CHECK-IN CHẤM CÔNG (ĐỘC LẬP) */}
+        {/* Trang này không nằm trong LayoutApp vì nó chiếm Full màn hình */}
+        <Route 
+          path="/timekeep" 
+          element={
+            // Nếu chưa đăng nhập, đá về "/timekeep/login" thay vì "/login" của POS
+            <ProtectedRoute allowedRoles={["Admin", "Employee"]} loginPath="/timekeep/login">
+              <AttendancePage />
+            </ProtectedRoute>
+          } 
+        />
+
+
+        {/* === CÁNH CỬA 2: CÁC TRANG BẢO MẬT CỦA POS (CÓ SIDEBAR) === */}
         <Route 
           element={
             <ProtectedRoute allowedRoles={["Admin", "Employee"]}>
@@ -73,19 +101,13 @@ function App() {
           <Route path="/categories" element={<CategoryManagement />} />
           <Route path="/categories/:categoryId/menu-items" element={<MenuItemsManagement />} />
           <Route path="/vouchers" element={<VoucherManagement />} />
+
+          {/* 🔥 TRANG QUẢN LÝ CHẤM CÔNG DÀNH CHO ADMIN NẰM TRONG POS */}
+          {/* Tùy bạn quyết định Employee có được xem bảng này không. Nếu chỉ Admin, hãy bọc ProtectedRoute lẻ ở đây */}
+          <Route path="/attendance" element={<AttendanceManager />} />
+          <Route path="/attendance/:userId" element={<AttendanceDetail />} />
         </Route>
         
-        
-        {/* Sau này bạn có thêm trang Admin thì copy mẫu này:
-        <Route 
-          path="/admin-dashboard" 
-          element={
-            <ProtectedRoute allowedRoles={["Admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        */}
       </Routes>
   )
 }
