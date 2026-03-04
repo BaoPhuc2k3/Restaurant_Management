@@ -1,8 +1,5 @@
 import api from "../axios";
 
-
-
-// (Tùy chọn) Lấy danh mục menu để làm filter
 export const getAllMenus = async () => {
     const res = await api.get("/menus");
     return res.data;
@@ -18,7 +15,7 @@ export const updateMenu = async (id, name) => {
   return res.data;
 };
 
-// Thêm hàm gọi API Bật/Tắt
+
 export const toggleMenuStatus = async (id) => {
   const res = await api.put(`/menus/${id}/toggle`);
   return res.data;

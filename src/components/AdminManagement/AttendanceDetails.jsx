@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../API/axios";
 import { FiArrowLeft, FiClock, FiCalendar, FiUser, FiInfo, FiDownload } from "react-icons/fi";
-import * as XLSX from 'xlsx'; // Import thư viện Excel
+import * as XLSX from 'xlsx'; 
 
 export default function AttendanceDetail() {
   const { userId } = useParams();
@@ -34,7 +34,7 @@ export default function AttendanceDetail() {
     }
   };
 
-  // 🔥 HÀM XUẤT EXCEL CHI TIẾT
+  // HÀM XUẤT EXCEL CHI TIẾT
   const handleExportExcel = () => {
     if (data.length === 0) return;
 
@@ -85,8 +85,6 @@ export default function AttendanceDetail() {
         >
           <FiArrowLeft /> Quay lại danh sách
         </button>
-
-        {/* NÚT XUẤT EXCEL CHI TIẾT */}
         <button 
           onClick={handleExportExcel}
           disabled={data.length === 0}

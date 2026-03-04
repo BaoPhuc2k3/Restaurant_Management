@@ -12,8 +12,6 @@ export default function LoginForm() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  
-  // 🔥 THÊM STATE TOAST (GIỮ NGUYÊN GIAO DIỆN CŨ)
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -80,8 +78,6 @@ export default function LoginForm() {
           />
         </div>
 
-        {/* Bỏ phần text error cũ ở đây để dùng Toast cho thoáng */}
-
         <div className="text-right mb-2">
           <a href="#" className="text-[#ff7b00] text-[15px] hover:underline">Forgot password?</a>
         </div>
@@ -113,7 +109,7 @@ export default function LoginForm() {
         </Button>
       </div>
 
-      {/* 🔥 PHẦN TOAST NOTIFICATION (DẠNG TRƯỢT GÓC TRÊN) */}
+      {/* TOAST NOTIFICATION */}
       {toast && (
         <div className="fixed top-6 right-6 z-[100] animate-fade-in-down">
           <div className={`flex items-center gap-3 px-6 py-3 rounded-lg shadow-2xl text-white ${

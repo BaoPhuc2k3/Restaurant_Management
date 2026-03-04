@@ -273,32 +273,27 @@ export default function POSPage() {
 
   }, [selectedTable, updateOrder]);
 
-  /* ======================= UPDATE ORDER INFO ======================= */
-
   const handleUpdateOrderInfo = useCallback((info) => {
     if (!selectedTable) return;
     updateOrder(selectedTable.id, info);
   }, [selectedTable, updateOrder]);
 
-  /* ======================= PAYMENT ======================= */
+  /* PAYMENT */
 
   const handleOpenPayment = useCallback((paymentData) => {
   if (!selectedTable || selectedOrder.items.length === 0) {
     alert("Không có hóa đơn để thanh toán");
     return;
   }
-  // paymentData ở đây chính là object { summary, cashGiven, change } từ OrderPanel gửi lên
+  // paymentData là object { summary, cashGiven, change } từ OrderPanel gửi lên
   setPaymentSummary(paymentData); 
   setModalState(prev => ({ ...prev, payment: true }));
 }, [selectedTable, selectedOrder]);
 
-  // Thay thế hàm handleFinalPayment (khoảng dòng 240)
 const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
   if (!selectedTable || !paymentSummary) return;
 
   try {
-    // 1. CHUẨN BỊ PAYLOAD KHỚP VỚI C# BACKEND
-    // Tính tổng số tiền được giảm từ % và Voucher
     const totalDiscount = paymentSummary.summary.percentDiscount + paymentSummary.summary.voucherDiscount;
 
     const checkoutPayload = {
@@ -316,11 +311,10 @@ const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
       }))
     };
 
-    // 2. GỌI API ĐẾN BACKEND
-    // Import `api` từ axios của bạn lên đầu file nếu chưa có
+
     const response = await api.post("/orders/checkout", checkoutPayload);
 
-    // 3. XÓA BÀN VÀ RESET GIAO DIỆN
+    // XÓA BÀN VÀ RESET GIAO DIỆN
     await updateTableStatus(selectedTable.id, TABLE_STATUS.AVAILABLE);
 
     setOrders(prev => {
@@ -339,7 +333,7 @@ const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
     setPaymentSummary(null);
     setModalState(prev => ({ ...prev, payment: false }));
 
-    // 4. HIỂN THỊ THÔNG BÁO DỰA VÀO C# TRẢ VỀ
+    // HIỂN THỊ THÔNG BÁO DỰA VÀO C# TRẢ VỀ
     const earnedPoints = response.data.earnedPoints;
     if (checkoutPayload.phoneNumber && earnedPoints > 0) {
       alert(`Thanh toán thành công!\nKhách hàng được cộng ${earnedPoints} điểm.`);
@@ -349,20 +343,14 @@ const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
 
   } catch (err) {
     console.error("Lỗi thanh toán:", err);
-    // Bắt lỗi từ Backend trả về (ví dụ: Không đủ điểm, voucher hết hạn)
     const errorMsg = err.response?.data?.message || "Lỗi kết nối tới hệ thống.";
     alert("Thanh toán thất bại: " + errorMsg);
   }
 }, [selectedTable, selectedOrder, paymentSummary]);
 
-  /* ======================= RENDER ======================= */
 
   return (
     <div className="h-full flex bg-gray-100">
-
-      {/* <div className="w-20 bg-teal-800 text-white">
-        <Sidebar />
-      </div> */}
 
       <div className="flex flex-1 overflow-hidden">
 
@@ -415,16 +403,16 @@ const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
   <PaymentModal
     table={selectedTable}
     order={selectedOrder.items}
-    summary={paymentSummary?.summary}           // ĐÃ SỬA
+    summary={paymentSummary?.summary}           
     customerPhone={selectedOrder.customerPhone}
-    cashGiven={paymentSummary?.cashGiven}       // ĐÃ SỬA
-    change={paymentSummary?.change}             // ĐÃ SỬA
+    cashGiven={paymentSummary?.cashGiven}       
+    change={paymentSummary?.change}             
     onClose={() => setModalState(prev => ({ ...prev, payment: false }))}
     onConfirm={handleFinalPayment}
   />
 )};
 
-{/* ================= MODAL XÁC NHẬN HỦY ĐƠN ================= */}
+{/* MODAL XÁC NHẬN HỦY ĐƠN  */}
       {modalState.cancelConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm transition-opacity">
           
@@ -465,7 +453,7 @@ const handleFinalPayment = useCallback(async ({ paymentMethod }) => {
         </div>
       )}
 
-      {/* ================= TOAST NOTIFICATION ================= */}
+      {/* TOAST NOTIFICATION */}
       {toast && (
         <div className="fixed top-6 right-6 z-70 animate-fade-in-down">
           <div className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3">

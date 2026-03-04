@@ -15,8 +15,8 @@ export default function PaymentModal({
   const staffName = localStorage.getItem("fullName") || "N/A";
 
   const BANK_ID = "MB"; 
-  const ACCOUNT_NO = "0987654321"; 
-  const ACCOUNT_NAME = "TEN CHU QUAN"; 
+  const ACCOUNT_NO = "038780310003100"; 
+  const ACCOUNT_NAME = "LE BAO PHUCPHUC"; 
   
   const qrCodeUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${summary?.finalAmount}&addInfo=Thanh toan ban ${table?.tableName}&accountName=${ACCOUNT_NAME}`;
 
@@ -32,15 +32,15 @@ export default function PaymentModal({
   return (
     <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
       {/* Cố định kích thước Modal */}
-      <div className="bg-white w-full max-w-[380px] h-[85vh] rounded-xl shadow-2xl overflow-hidden flex flex-col border border-gray-200">
+      <div className="bg-white w-full max-w-95 h-[85vh] rounded-xl shadow-2xl overflow-hidden flex flex-col border border-gray-200">
         
-        {/* 1. HEADER (CỐ ĐỊNH) */}
+        {/* HEADER */}
         <div className="px-4 py-3 border-b bg-gray-50 flex justify-between items-center shrink-0">
           <span className="font-bold text-teal-800 text-sm">Thanh toán {table?.tableName}</span>
           <button onClick={onClose} className="text-gray-400 hover:text-red-500 text-xl leading-none">×</button>
         </div>
 
-        {/* 2. THÔNG TIN CHUNG (CỐ ĐỊNH) */}
+        {/* TTHÔNG TIN CHUNG */}
         <div className="px-5 py-4 shrink-0 bg-white">
           <div className="text-center font-bold text-sm tracking-widest mb-3">HÓA ĐƠN TẠM TÍNH</div>
           <div className="space-y-1 text-[11px] text-gray-500 border-b border-dashed pb-3">
@@ -55,7 +55,7 @@ export default function PaymentModal({
           </div>
         </div>
 
-        {/* 3. DANH SÁCH MÓN (DUY NHẤT PHẦN NÀY ĐƯỢC CUỘN) */}
+        {/* DANH SÁCH MÓN */}
         <div className="flex-1 overflow-y-auto px-5 scrollbar-hide">
           <div className="space-y-2">
             {order.map((item, idx) => (
@@ -73,7 +73,7 @@ export default function PaymentModal({
           </div>
         </div>
 
-        {/* 4. TỔNG TIỀN VÀ THANH TOÁN (CỐ ĐỊNH) */}
+        {/* TỔNG TIỀN VÀ THANH TOÁN (CỐ ĐỊNH) */}
         <div className="shrink-0 bg-white shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.05)]">
           <div className="px-5 py-3 space-y-1.5 border-t border-dashed border-gray-200">
             <div className="flex justify-between text-[11px] text-gray-500">

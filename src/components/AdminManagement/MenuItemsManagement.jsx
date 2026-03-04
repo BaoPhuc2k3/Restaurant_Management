@@ -13,10 +13,7 @@ import {
 
 export default function MenuItems() {
   const navigate = useNavigate();
-  
-  // Lấy categoryId từ URL (VD: /menu-items?categoryId=1)
   const { categoryId } = useParams();
-
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -64,7 +61,7 @@ export default function MenuItems() {
         });
         alert("Cập nhật thành công!");
       } else {
-        // THÊM MỚI (Nhớ gửi kèm MenuId)
+        // THÊM MỚI
         await createMenuItem({
           menuId: parseInt(categoryId),
           name: formData.name,

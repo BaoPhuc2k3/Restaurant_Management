@@ -16,22 +16,18 @@ export default function CategoryManagement() {
   
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // 1. STATE CHO MODAL THÊM / SỬA
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null); 
   const [categoryName, setCategoryName] = useState("");
 
-  // 2. STATE CHO MODAL THÔNG BÁO (DIALOG CHUNG)
   const [dialog, setDialog] = useState({
     isOpen: false,
     type: 'info', // Gồm: 'success', 'error', 'warning', 'confirm'
     title: '',
     message: '',
-    onConfirm: null // Hàm sẽ chạy nếu người dùng bấm "Đồng ý"
+    onConfirm: null 
   });
 
-  // HÀM TIỆN ÍCH ĐỂ GỌI DIALOG NHANH GỌN
   const showDialog = (type, title, message, onConfirm = null) => {
     setDialog({ isOpen: true, type, title, message, onConfirm });
   };
@@ -57,9 +53,7 @@ export default function CategoryManagement() {
     navigate(`/categories/${categoryId}/menu-items`); 
   };
 
-  // ==========================================
   // XỬ LÝ LƯU (THÊM / SỬA)
-  // ==========================================
   const handleSaveCategory = async () => {
     if (!categoryName.trim()) {
       showDialog('warning', 'Thiếu thông tin', 'Vui lòng nhập tên danh mục!');
@@ -87,9 +81,8 @@ export default function CategoryManagement() {
     setIsModalOpen(true);
   };
 
-  // ==========================================
+
   // XỬ LÝ BẬT / TẮT (TOGGLE)
-  // ==========================================
   const handleToggle = async (e, id) => {
     e.stopPropagation(); 
     try {
@@ -100,11 +93,9 @@ export default function CategoryManagement() {
     }
   };    
 
-  // ==========================================
   // XỬ LÝ XÓA
-  // ==========================================
   const handleDeleteClick = async (e, id, name) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
 
     try {
       const checkRes = await checkDeleteMenuStatus(id);
@@ -184,7 +175,6 @@ export default function CategoryManagement() {
         </button>
       </div>
 
-      {/* BẢNG DỮ LIỆU (Giữ nguyên cấu trúc của bạn) */}
       <div className="flex-1 overflow-auto p-6 bg-gray-100">
         <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
           <table className="w-full text-left border-collapse">
@@ -288,7 +278,6 @@ export default function CategoryManagement() {
         </div>
       )}
 
-      {/* 2. MODAL THÔNG BÁO CHUNG (ALERT / CONFIRM) */}
       {dialog.isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm">
           <div className="bg-white w-100 rounded-lg shadow-xl overflow-hidden">
@@ -315,7 +304,6 @@ export default function CategoryManagement() {
             </div>
 
             <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
-              {/* Nếu có onConfirm (Xác nhận Xóa), hiển thị thêm nút Hủy */}
               {dialog.onConfirm && (
                 <button 
                   onClick={closeDialog}
@@ -328,7 +316,7 @@ export default function CategoryManagement() {
               <button 
                 onClick={() => {
                   if (dialog.onConfirm) dialog.onConfirm();
-                  else closeDialog(); // Nếu là alert bình thường thì đóng
+                  else closeDialog(); 
                 }}
                 className={`px-4 py-2 text-white rounded transition-colors font-medium shadow-sm ${
                   dialog.type === 'error' ? 'bg-red-600 hover:bg-red-700' : 

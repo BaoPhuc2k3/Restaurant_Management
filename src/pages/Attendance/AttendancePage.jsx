@@ -10,7 +10,6 @@ export default function AttendancePage() {
 
   const staffName = localStorage.getItem("fullName") || "Nhân viên";
 
-  // Hiển thị thông báo trượt góc màn hình
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -56,7 +55,6 @@ export default function AttendancePage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-gray-200">
-        {/* HEADER PROFILE */}
         <div className="bg-linear-to-br from-teal-600 to-teal-800 p-8 text-white text-center">
           <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-white/30">
             <FiUser className="text-5xl" />
@@ -121,7 +119,7 @@ export default function AttendancePage() {
 
       {/* TOAST NOTIFICATION */}
       {toast && (
-        <div className="fixed top-6 right-6 z-[100] animate-fade-in-down">
+        <div className="fixed top-6 right-6 z-100 animate-fade-in-down">
           <div className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl text-white ${
             toast.type === 'success' ? 'bg-teal-600' : 'bg-red-600'
           }`}>

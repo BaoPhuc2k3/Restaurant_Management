@@ -7,15 +7,13 @@ import {
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // 1. STATE CHO MODAL THÊM/SỬA
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({ 
     username: "", password: "", fullName: "", type: "Employee"
   });
 
-  // 2. STATE CHO MODAL THÔNG BÁO (DIALOG CHUNG)
+
   const [dialog, setDialog] = useState({
     isOpen: false,
     type: 'info', // Gồm: 'success', 'error', 'warning', 'confirm'
@@ -24,7 +22,7 @@ export default function UserManagement() {
     onConfirm: null 
   });
 
-  // HÀM TIỆN ÍCH ĐỂ GỌI DIALOG
+
   const showDialog = (type, title, message, onConfirm = null) => {
     setDialog({ isOpen: true, type, title, message, onConfirm });
   };
@@ -91,7 +89,6 @@ export default function UserManagement() {
   };
 
   const handleResetPassword = (id, fullName) => {
-    // Thay window.confirm bằng Dialog Confirm xịn sò
     showDialog(
       'confirm',
       'Xác nhận đặt lại',
@@ -264,7 +261,6 @@ export default function UserManagement() {
         </div>
       )}
 
-      {/* 2. MODAL THÔNG BÁO CHUNG (DIALOG) */}
       {dialog.isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm">
           <div className="bg-white w-100 rounded-lg shadow-xl overflow-hidden">

@@ -15,7 +15,6 @@ export default function AttendanceManager() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const navigate = useNavigate();
 
-  // --- STATE CHO POPUP CHI TIẾT NHÂN VIÊN ---
   const [detailModal, setDetailModal] = useState({
     isOpen: false,
     employee: null,
@@ -60,18 +59,7 @@ export default function AttendanceManager() {
     }
   };
 
-  // --- HÀM MỞ CHI TIẾT 1 NHÂN VIÊN KHI CLICK VÀO DÒNG ---
   const handleRowClick = async (employee) => {
-    // setDetailModal({ isOpen: true, employee, data: [], loading: true });
-    // try {
-    //   // Gọi API C# vừa viết ở Bước 1
-    //   const res = await api.get(`/attendance/details?userId=${employee.id}&month=${selectedMonth}&year=${selectedYear}`);
-    //   setDetailModal({ isOpen: true, employee, data: res.data, loading: false });
-    // } catch (err) {
-    //   console.error("Lỗi tải chi tiết", err);
-    //   setDetailModal(prev => ({ ...prev, loading: false }));
-    //   openDialog("error", "Lỗi", "Không thể tải chi tiết chấm công của nhân viên này.");
-    // }
     navigate(`/attendance/${employee.id}?month=${selectedMonth}&year=${selectedYear}`);
   };
 
@@ -231,8 +219,8 @@ export default function AttendanceManager() {
                 reportData.map(row => (
                   <tr 
                     key={row.id} 
-                    onClick={() => handleRowClick(row)} // Gọi hàm khi click
-                    className="hover:bg-teal-50 transition-colors cursor-pointer group" // Đổi màu nền khi hover báo hiệu có thể click
+                    onClick={() => handleRowClick(row)} 
+                    className="hover:bg-teal-50 transition-colors cursor-pointer group"
                     title="Click để xem chi tiết"
                   >
                     <td className="p-4 font-mono text-sm text-gray-500 group-hover:text-teal-600">{row.username}</td>
@@ -250,87 +238,10 @@ export default function AttendanceManager() {
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* POPUP CHI TIẾT CHẤM CÔNG CỦA 1 NHÂN VIÊN                 */}
-      {/* ======================================================== */}
-      {detailModal.isOpen && (
-        <div className="fixed inset-0 z-[5000] flex items-center justify-center bg-black/60 transition-opacity backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-[800px] max-w-[95%] max-h-[90vh] flex flex-col transform transition-transform scale-100 animate-fade-in-up">
-            
-            {/* Header của Popup */}
-            <div className="flex justify-between items-center p-5 border-b border-gray-100">
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">Chi tiết chấm công</h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Nhân viên: <span className="font-bold text-teal-600">{detailModal.employee?.fullName}</span> 
-                  <span className="mx-2">|</span> Tháng {selectedMonth}/{selectedYear}
-                </p>
-              </div>
-              <button onClick={closeDetailModal} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
-                <FiX className="text-xl" />
-              </button>
-            </div>
 
-            {/* Nội dung bảng chi tiết */}
-            <div className="p-5 overflow-y-auto flex-1">
-              {detailModal.loading ? (
-                <div className="flex flex-col items-center justify-center py-10 gap-3">
-                  <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-gray-500 text-sm">Đang tải chi tiết ca làm...</p>
-                </div>
-              ) : detailModal.data.length === 0 ? (
-                <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                  Nhân viên này chưa có lịch sử check-in trong tháng này.
-                </div>
-              ) : (
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-100 text-gray-600 sticky top-0">
-                    <tr>
-                      <th className="p-3 font-semibold rounded-tl-lg">Giờ vào (Check-in)</th>
-                      <th className="p-3 font-semibold">Giờ ra (Check-out)</th>
-                      <th className="p-3 font-semibold text-right rounded-tr-lg">Số giờ làm</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {detailModal.data.map(session => (
-                      <tr key={session.id} className="hover:bg-gray-50">
-                        <td className="p-3 font-medium text-gray-800">
-                          {formatDateTime(session.checkInTime)}
-                        </td>
-                        <td className="p-3 text-gray-600">
-                          {session.checkOutTime ? (
-                            formatDateTime(session.checkOutTime)
-                          ) : (
-                            <span className="text-orange-500 font-medium italic text-xs px-2 py-1 bg-orange-50 rounded">Chưa Check-out</span>
-                          )}
-                        </td>
-                        <td className="p-3 text-right">
-                          <span className="font-bold text-teal-600">
-                            {session.totalHours ? Number(session.totalHours).toFixed(2) + " h" : "---"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            {/* Footer của Popup */}
-            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end rounded-b-2xl">
-              <button onClick={closeDetailModal} className="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors">
-                Đóng lại
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* COMPONENT DIALOG TÙY CHỈNH */}
       {dialog.isOpen && (
-        <div className="fixed inset-0 z-[6060] flex items-center justify-center bg-black/50 transition-opacity">
-          {/* ... Giữ nguyên như cũ ... */}
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-[400px] max-w-[90%] transform transition-transform scale-100 animate-fade-in-up">
+        <div className="fixed inset-0 z-6060 flex items-center justify-center bg-black/50 transition-opacity">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-100 max-w-[90%] transform transition-transform scale-100 animate-fade-in-up">
             <div className="flex items-center gap-3 mb-4">
               {dialog.type === 'success' && <FiCheckCircle className="text-2xl text-teal-500" />}
               {dialog.type === 'error' && <FiAlertTriangle className="text-2xl text-red-500" />}

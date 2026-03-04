@@ -3,9 +3,7 @@ import api from "../../API/axios";
 import PaymentModal from "../../components/POS/PaymentModal";
 
 
-/* ============================= */
-/* UTIL: CALCULATE SUMMARY       */
-/* ============================= */
+{/* TÍNH TỔNG ĐƠN HÀNG */}
 const calculateOrderSummary = ({
   items,
   discountPercent,
@@ -46,15 +44,6 @@ const calculateOrderSummary = ({
   };
 };
 
-/* ============================= */
-/* MEMO: RENDER ORDER ROWS      */
-/* ============================= */
-
-
-
-/* ============================= */
-/* COMPONENT                     */
-/* ============================= */
 
 export default function OrderPanel({
   table,
@@ -77,10 +66,7 @@ export default function OrderPanel({
   const [cashGiven, setCashGiven] = useState(0);
   // const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
-  /* ============================= */
-  /* LOAD VOUCHERS                 */
-  /* ============================= */
-
+  {/* LOAD VOUCHERS */}
   useEffect(() => {
     const loadVouchers = async () => {
       try {
@@ -93,10 +79,7 @@ export default function OrderPanel({
     loadVouchers();
   }, []);
 
-  /* ============================= */
-  /* LOAD CUSTOMER                 */
-  /* ============================= */
-
+  {/* LOAD CUSTOMER */}
   useEffect(() => {
     const cleanPhone = (customerPhone || "").trim();
     const isValid = /^0\d{9}$/.test(cleanPhone);
@@ -126,10 +109,7 @@ export default function OrderPanel({
     return () => clearTimeout(delay);
   }, [customerPhone]);
 
-  /* ============================= */
-  /* FILTER VALID VOUCHERS         */
-  /* ============================= */
-
+  {/* Lọc voucher theo điểm của khách hàng */}
   const validVouchers = useMemo(() => {
     if (!customerData) return [];
     return vouchers.filter(
@@ -148,10 +128,7 @@ export default function OrderPanel({
     }
   }, [customerData, selectedVoucher, onUpdateOrderInfo]);
 
-  /* ============================= */
-  /* CALCULATE MONEY (memoized)    */
-  /* ============================= */
-
+  {/* TÍNH TIỀN */}
   const summary = useMemo(() => {
     return calculateOrderSummary({
       items: order,
@@ -290,10 +267,10 @@ export default function OrderPanel({
         </div>
       </div>
 
-      {/* ================= ITEM LIST ================= */}
+      {/*  ITEM LIST */}
 <div className="flex-1 flex flex-col overflow-hidden">
 
-  {/* HEADER STICKY */}
+  {/* HEADER */}
   <div className="grid grid-cols-12 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-2 border-b sticky top-0 z-10">
     <div className="col-span-1">#</div>
     <div className="col-span-4">Món</div>
@@ -315,10 +292,10 @@ export default function OrderPanel({
 
 </div>
 
-      {/* ================= FOOTER ================= */}
+      {/* FOOTER */}
 <div className="border-t bg-gray-50 p-4 text-sm">
 
-  {/* ===== DISCOUNT AREA (2 CỘT NGANG) ===== */}
+  {/* DISCOUNT AREA */}
   <div className="grid grid-cols-2 gap-4 mb-3">
 
     <div className="flex items-center gap-2">
@@ -347,7 +324,7 @@ export default function OrderPanel({
 
   </div>
 
-  {/* ===== VOUCHER (FULL WIDTH) ===== */}
+  {/* VOUCHER */}
   <div className="flex items-center gap-2 mb-3">
     <label className="w-20 text-gray-600">
       Voucher
@@ -366,7 +343,6 @@ export default function OrderPanel({
       {validVouchers.map(v => (
         <option key={v.id} value={v.id}>
           {v.code} - Giảm {v.type === "Percentage" ? `${v.discountValue}%` : `${v.discountValue.toLocaleString()}đ`}
-          {/* 🔥 THÊM LOGIC HIỂN THỊ GIÁ TRỊ TỐI ĐA Ở ĐÂY */}
           {v.type === "Percentage" && v.maxDiscountAmount > 0 
             ? ` (Tối đa ${v.maxDiscountAmount.toLocaleString()}đ)` 
             : ""}
@@ -375,7 +351,7 @@ export default function OrderPanel({
     </select>
   </div>
 
-  {/* ===== SUMMARY ===== */}
+  {/* SUMMARY */}
   <div className="border-t pt-2 space-y-1 mb-3">
 
     <div className="flex justify-between text-gray-600">
@@ -392,7 +368,7 @@ export default function OrderPanel({
 
   </div>
 
-  {/* ===== CASH AREA (2 CỘT NGANG) ===== */}
+  {/* CASH AREA */}
   <div className="grid grid-cols-2 gap-4 mb-2">
 
     <div className="flex items-center gap-2">
@@ -409,7 +385,7 @@ export default function OrderPanel({
 
     <div className="flex items-center gap-2">
       <label className="w-20 text-gray-600">
-        Tiền thối
+        Trả lại
       </label>
       <div className="flex-1 bg-gray-200 rounded px-2 py-1 text-sm">
         {change.toLocaleString()}đ
@@ -418,7 +394,7 @@ export default function OrderPanel({
 
   </div>
 
-  {/* ===== QUICK CASH ===== */}
+  {/* QUICK CASH */}
   <div className="flex gap-2 mb-3">
     {[50000, 100000, 200000, 500000].map(amount => (
       <button
@@ -431,7 +407,7 @@ export default function OrderPanel({
     ))}
   </div>
 
-  {/* ===== ACTIONS ===== */}
+  {/* ACTIONS */}
   <div className="flex gap-2">
     <button 
       onClick={onCancelOrder}
@@ -442,19 +418,16 @@ export default function OrderPanel({
     </button>
 
     <button
-  // Thay thế sự kiện onClick của nút Thanh toán ở cuối OrderPanel.jsx
-onClick={() => {
-  if (order.length === 0) return;
+      onClick={() => {
+        if (order.length === 0) return;
 
-  const cleanPhone = (customerPhone || "").trim();
-  if (cleanPhone && !/^0\d{9}$/.test(cleanPhone)) {
-    alert("SĐT không hợp lệ");
-    return;
-  }
-
-  // ĐÃ SỬA: Truyền thêm `change` lên POSPage
-  onPayment({
-    summary,
+        const cleanPhone = (customerPhone || "").trim();
+        if (cleanPhone && !/^0\d{9}$/.test(cleanPhone)) {
+          alert("SĐT không hợp lệ");
+          return;
+        }
+        onPayment({
+          summary,
     cashGiven,
     change 
   });

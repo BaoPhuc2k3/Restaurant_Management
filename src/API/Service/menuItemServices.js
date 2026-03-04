@@ -2,7 +2,7 @@ import api from "../axios";
 
 // Lấy tất cả món ăn
 export const getAllMenuItems = async () => {
-    const res = await api.get("/menuitems"); // Đảm bảo Backend có route này
+    const res = await api.get("/menuitems");
     return res.data;
 };
 

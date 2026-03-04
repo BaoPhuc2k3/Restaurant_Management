@@ -1,24 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { FiUser, FiLock, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
 import { useNavigate, useLocation } from "react-router-dom";
-
-// Đảm bảo đường dẫn import này khớp với cấu trúc thư mục của bạn
 import Input from "../../components/UI/Input";
 import Button from "../../components/UI/Button";
 import { login } from "../../API/Service/authServices"; 
-// import "../styles/auth.css";
+
 
 export default function LoginAttendance() {
   const navigate = useNavigate();
   const location = useLocation();
-  // Nếu nhân viên quét QR bị văng ra form login, nó sẽ nhớ đường dẫn cũ
   const from = location.state?.from || "/timekeep"; 
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [toast, setToast] = useState(null);
 
-  // Xử lý tự động ẩn Toast
+  
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000);
@@ -46,7 +43,6 @@ export default function LoginAttendance() {
 
       setToast({ message: "Đăng nhập thành công!", type: "success" });
 
-      // 🔥 CHUYỂN HƯỚNG VÀO TRANG CHẤM CÔNG
       setTimeout(() => {
         navigate(from, { replace: true });
       }, 1000);
@@ -59,9 +55,7 @@ export default function LoginAttendance() {
 
   return (
     <div className="w-full flex h-screen bg-[#fff5e6] relative">
-      {/* PHẦN 1: HÌNH ẢNH TRANG TRÍ (Layout cũ) */}
       <div className="flex-[1.2] flex items-center justify-center">
-        {/* Bạn có thể thay đổi link ảnh này thành một hình ảnh liên quan đến chấm công/đồng hồ */}
         <img 
           src="https://cdni.iconscout.com/illustration/premium/thumb/time-management-illustration-download-in-svg-png-gif-file-formats--business-stopwatch-task-pack-illustrations-3317079.png" 
           alt="Attendance Illustration"
@@ -69,7 +63,7 @@ export default function LoginAttendance() {
         />
       </div>
 
-      {/* PHẦN 2: FORM ĐĂNG NHẬP */}
+      {/* FORM ĐĂNG NHẬP */}
       <div className="flex-1 flex justify-center items-center bg-[#f7f4f4]">
         <div className="flex justify-center items-center w-[60%] h-[80%] bg-white rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.1)]">
           
@@ -114,20 +108,6 @@ export default function LoginAttendance() {
                 VÀO CA
               </Button>
             </form>
-
-            {/* Nút đăng nhập Google (Nếu cần cho nhân viên)
-            <div className="mt-4 text-center">
-              <span className="block mb-2 text-gray-500 text-sm">Hoặc</span>
-              <Button onClick={() => window.location.href = "/auth/google"}>
-                <img
-                  src="https://www.svgrepo.com/show/475656/google-color.svg"
-                  className="w-5 h-5 inline-block mr-2"
-                  alt="Google"
-                />
-                Đăng nhập với Google
-              </Button>
-            </div> */}
-
           </div>
 
         </div>

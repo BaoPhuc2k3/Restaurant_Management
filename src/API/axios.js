@@ -34,10 +34,8 @@ api.interceptors.response.use(
       localStorage.removeItem("fullName");
       localStorage.removeItem("username");
 
-      // 2. Hiện thông báo cho nhân viên biết
       alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
 
-      // 3. Đá văng về trang Login ngay lập tức
       window.location.href = "/login"; 
     }
 

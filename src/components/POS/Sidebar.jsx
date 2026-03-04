@@ -7,7 +7,7 @@ import {
   FiPieChart, 
   FiUser,
   FiTag,
-  FiCalendar // 🔥 1. Thêm icon FiCalendar cho Chấm công
+  FiCalendar 
 } from "react-icons/fi";
 
 export default function Sidebar() {
@@ -33,7 +33,6 @@ export default function Sidebar() {
       {/* LOGO */}
       <div className="text-xl font-bold mb-8 text-[#ff7b00]">PL RES</div>
 
-      {/* CÁC NÚT CHỨC NĂNG CHÍNH */}
       <div className="flex flex-col items-center space-y-6 w-full">
         
         {/* Nút Bán hàng */}
@@ -80,8 +79,7 @@ export default function Sidebar() {
           <FiPieChart className="text-2xl mb-1" />
           <span>Báo cáo</span>
         </button>
-
-        {/* 🔥 2. NÚT CHẤM CÔNG MỚI THÊM */}
+        {/* Nút Chấm công*/}
         <button 
           onClick={() => navigate('/attendance')}
           className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/attendance') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
@@ -92,7 +90,7 @@ export default function Sidebar() {
 
       </div>
 
-      {/* PHẦN PROFILE DƯỚI ĐÁY */}
+      {/*PROFILE */}
       <div className="mt-auto relative flex flex-col items-center w-full">
         <button 
           onClick={() => setShowProfileMenu(!showProfileMenu)} 

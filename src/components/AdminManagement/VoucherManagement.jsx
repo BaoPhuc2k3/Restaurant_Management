@@ -8,7 +8,6 @@ export default function VoucherManagement() {
   const [vouchers, setVouchers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // STATE MODAL THÊM/SỬA
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVoucher, setEditingVoucher] = useState(null);
   const [formData, setFormData] = useState({
@@ -16,7 +15,6 @@ export default function VoucherManagement() {
     requiredPoints: 0, quantity: 1, startDate: "", endDate: ""
   });
 
-  // STATE DIALOG THÔNG BÁO
   const [dialog, setDialog] = useState({ isOpen: false, type: 'info', title: '', message: '', onConfirm: null });
 
   const showDialog = (type, title, message, onConfirm = null) => {
@@ -56,7 +54,7 @@ export default function VoucherManagement() {
     if (voucher) {
       setFormData({
         code: voucher.code,
-        type: voucher.type, // 'Percentage' hoặc 'FixedAmount'
+        type: voucher.type, 
         discountValue: voucher.discountValue,
         maxDiscountAmount: voucher.maxDiscountAmount || 0,
         requiredPoints: voucher.requiredPoints,
@@ -65,7 +63,7 @@ export default function VoucherManagement() {
         endDate: formatDateTimeForInput(voucher.endDate)
       });
     } else {
-      // Mặc định tạo mới: Bắt đầu từ hiện tại, kết thúc sau 7 ngày
+    
       const now = new Date();
       const nextWeek = new Date();
       nextWeek.setDate(now.getDate() + 7);
@@ -282,7 +280,6 @@ export default function VoucherManagement() {
         </div>
       )}
 
-      {/* DIALOG THÔNG BÁO CHUNG */}
       {dialog.isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm">
           <div className="bg-white w-100 rounded-lg shadow-xl overflow-hidden">
