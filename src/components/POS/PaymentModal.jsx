@@ -58,7 +58,8 @@ export default function PaymentModal({
         {/* DANH SÁCH MÓN */}
         <div className="flex-1 overflow-y-auto px-5 scrollbar-hide">
           <div className="space-y-2">
-            {order.map((item, idx) => (
+            {order.filter(item => item.itemStatus !== 4)
+            .map((item, idx) => (
               <div key={item.id} className="flex justify-between text-[12px] items-start group">
                 <div className="flex gap-2 flex-1 mr-2">
                   <span className="text-gray-400 w-3">{idx + 1}.</span>

@@ -25,6 +25,7 @@ import LoginAttendance from './pages/Attendance/LoginAttendance'
 import AttendanceManager from './components/AdminManagement/AttendanceManagement' 
 import AttendanceDetail from './components/AdminManagement/AttendanceDetails' 
 import AdminReport from './components/AdminManagement/AdminReport' 
+import KitchenPage from './pages/Kitchen/KitchenPage'
 
 const ProtectedRoute = ({ children, allowedRoles, loginPath = "/login" }) => {
   const token = localStorage.getItem("token");
@@ -47,9 +48,11 @@ const ProtectedRoute = ({ children, allowedRoles, loginPath = "/login" }) => {
 function App() {
   return (
       <Routes>
+        {/* <Route path="/pos" element={<POSPage />}/> */}
         <Route path="/login" element={<Login />} />
         <Route path="/timekeep/login" element={<LoginAttendance />} />
         <Route path="/register" element={<Register />}></Route>
+        <Route path="/kitchen" element={<KitchenPage />} />
         {/* <Route path="/register" element={<Register />} />
         <Route path="/" element={<HomeCustomer />} />
         

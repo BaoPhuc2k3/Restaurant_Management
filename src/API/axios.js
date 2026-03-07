@@ -2,6 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://localhost:7291/api",// đổi đúng port API của bạn
+  withCredentials: true, // Cho phép gửi cookie nếu cần
   headers: {
     "Content-Type": "application/json"
   } 
