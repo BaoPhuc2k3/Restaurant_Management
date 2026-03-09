@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../API/axios";
 import { FiWifi, FiClock, FiCalendar, FiDownload, FiAlertTriangle, FiCheckCircle, FiInfo, FiX } from "react-icons/fi";
 import * as XLSX from 'xlsx';
+import { getCurrentWifiIp, updateWifiIp, getAttendanceReport } from "../../API/Service/attendanceServices";
 
 export default function AttendanceManager() {
   const [wifiIp, setWifiIp] = useState("Đang tải...");
@@ -40,18 +41,18 @@ export default function AttendanceManager() {
 
   const fetchWifiIp = async () => {
     try {
-      const res = await api.get("/wifisettings/current-ip");
-      setWifiIp(res.data.ip);
+      const data = await getCurrentWifiIp();
+      setWifiIp(data.ip);
     } catch (err) {
       setWifiIp("Lỗi kết nối");
     }
   };
 
   const fetchReport = async () => {
-    setLoadingReport(true); 
+    setLoadingReport(true);
     try {
-      const res = await api.get(`/attendance/report?month=${selectedMonth}&year=${selectedYear}`);
-      setReportData(res.data);
+      const data = await getAttendanceReport(selectedMonth, selectedYear);
+      setReportData(data || []);
     } catch (err) {
       console.error("Lỗi lấy báo cáo", err);
     } finally {
@@ -83,9 +84,9 @@ export default function AttendanceManager() {
     closeDialog(); 
     setLoadingWifi(true);
     try {
-      const res = await api.post("/wifisettings/update-ip");
-      setWifiIp(res.data.ip);
-      openDialog("success", "Thành công!", `Mạng chấm công mới đã được thiết lập. (IP: ${res.data.ip})`);
+      const data = await updateWifiIp();
+      setWifiIp(data.ip);
+      openDialog("success", "Thành công!", `Mạng chấm công mới đã được thiết lập. (IP: ${data.ip})`);
     } catch (err) {
       openDialog("error", "Cập nhật thất bại", "Có lỗi xảy ra trong quá trình cấu hình. Vui lòng thử lại!");
     } finally {

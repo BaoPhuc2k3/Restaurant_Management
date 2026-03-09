@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { toast } from "react-toastify";
 import TableArea from "../../components/POS/TableArea";
 import MenuList from "../../components/POS/MenuList";
 import OrderPanel from "../../components/POS/OrderPanel";
@@ -11,8 +12,16 @@ import { HubConnectionBuilder } from "@microsoft/signalr";
 import { getAllTables, updateTableStatus } from "../../API/Service/tablesService";
 import { getAllMenus } from "../../API/Service/menuServices";
 import { getAllMenuItems } from "../../API/Service/menuItemServices";
-import api from "../../API/axios";
 import { FiAlertTriangle, FiAlertCircle, FiXCircle } from "react-icons/fi";
+
+import { 
+  getActiveOrderByTable, 
+  cancelOrder, 
+  addItemsToExistingOrder, 
+  createNewOrder, 
+  cancelItemInOrder, 
+  checkoutOrder 
+} from "../../API/Service/ordersServices";
 
 /* ============================================= */
 /* CONSTANTS                                     */
@@ -52,7 +61,7 @@ export default function POSPage() {
   });
 
   const [tableToOpen, setTableToOpen] = useState(null);
-  const [toast, setToast] = useState(null);
+  // const [toast, setToast] = useState(null);
   const [paymentSummary, setPaymentSummary] = useState(null);
 
   // State lưu thông tin món đang muốn hủy
@@ -91,10 +100,10 @@ export default function POSPage() {
     loadData();
   }, []);
 
-  const showToast = (message) => {
-    setToast(message);
-    setTimeout(() => setToast(null), 3000);
-  };
+  // const showToast = (message) => {
+  //   setToast(message);
+  //   setTimeout(() => setToast(null), 3000);
+  // };
 
   
 
@@ -120,13 +129,13 @@ export default function POSPage() {
       setSelectedTableId(table.id);
       
       try {
-        const res = await api.get(`/orders/table/${table.id}/active`);
-        if (res.data) {
+        const data = await getActiveOrderByTable(table.id);
+        if (data) {
           updateOrder(table.id, {
-            orderId: res.data.id,
-            status: res.data.status, // Cập nhật trạng thái đơn hàng thật từ DB
-            items: res.data.orderDetails.map(od => ({
-              id: od.menuItemId, 
+            orderId: data.id,
+            status: data.status, // Cập nhật trạng thái đơn hàng thật từ DB
+            items: data.orderDetails.map(od => ({
+              id: od.menuItemId,
               orderDetailId: od.id,
               name: od.menuItem?.name || `Món ${od.menuItemId}`,
               price: od.price,
@@ -201,8 +210,8 @@ export default function POSPage() {
             if (selectedTableIdRef.current === tableId) {
                 setSelectedTableId(null);
             }
-            
-            showToast(`Bếp đã lên đủ món. Bàn ${tableId} tự động đóng!`);
+
+            toast.info(`Bếp đã lên đủ món. Bàn ${tableId} tự động đóng!`);
         });
       })
       .catch(err => {
@@ -227,61 +236,69 @@ export default function POSPage() {
       setSelectedTableId(tableToOpen.id);
       setModalState(prev => ({ ...prev, openTable: false }));
     } catch (err) {
-      showToast("Mở bàn thất bại!");
+      toast.error("Mở bàn thất bại!");
     }
   }, [tableToOpen]);
 
   /* ======================= CANCEL TABLE (HỦY CẢ BÀN) ======================= */
-  const handleCancelOrder = useCallback(async () => {
-    // 1. Kiểm tra xem có đang chọn bàn nào không
+  /* ======================= CANCEL TABLE (HỦY CẢ BÀN) ======================= */
+  // 1. Hàm này chỉ làm nhiệm vụ: Bật Dialog xác nhận (Không gọi API)
+  const handleCancelOrder = useCallback(() => {
     if (!selectedTable) return;
+    setModalState(prev => ({ ...prev, cancelConfirm: true }));
+  }, [selectedTable]);
 
-    // 2. Xác nhận với người dùng (Tránh bấm nhầm)
-    const confirmCancel = window.confirm(
-        `Bạn có chắc chắn muốn HỦY TOÀN BỘ đơn hàng của ${selectedTable.tableName} không?`
-    );
-    if (!confirmCancel) return;
+  // 2. Hàm này mới thực sự gọi API (Được gắn vào nút "Có, hủy đơn" trong Dialog)
+  const executeCancelOrder = useCallback(async () => {
+    const currentItems = orders[selectedTable.id]?.items || [];
+    const cannotCancel = currentItems.some(item => item.itemStatus < 4);
+    console.log("Kiểm tra trạng thái món trước khi hủy bàn:", currentItems.map(i => ({ id: i.id, status: i.itemStatus })));
+
+    if (cannotCancel) {
+        // Báo lỗi đỏ và chặn luôn, không gọi API
+        toast.error("Bàn đã có món gửi bếp hoặc đã lên món. KHÔNG THỂ HỦY TOÀN BỘ BÀN!");
+        setModalState(prev => ({ ...prev, cancelConfirm: false }));
+        return; 
+    }
 
     try {
-        // 3. Gọi API Delete đã viết ở Backend
-        const res = await api.delete(`/orders/${selectedTable.id}/cancel`);
+        await cancelOrder(selectedTable.id);
+        clearTableState();
+        toast.success("Đã hủy bàn và thông báo tới bếp!"); // Dùng toast xịn
+    } catch (err) {
+        const status = err.response?.status;
+        if (status === 404 || status === 400) {
+            clearTableState();
+            toast.success("Đã dọn bàn trống thành công!");
+            return;
+        }
+        const errorMsg = err.response?.data || "Không thể hủy bàn này.";
+        toast.error(typeof errorMsg === 'string' ? errorMsg : "Bàn có món đang nấu, không thể hủy!"); // Toast đỏ báo lỗi
+    } finally {
+        setModalState(prev => ({ ...prev, cancelConfirm: false })); // Đóng Dialog
+    }
 
-        setTables(prev => prev.map(t => 
-            t.id === selectedTable.id 
-                ? { ...t, status: TABLE_STATUS.AVAILABLE } 
-                : t
-        ));
-
-        // 4. Nếu thành công, xóa trắng dữ liệu của bàn đó trong State của React
+    function clearTableState() {
+        setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: TABLE_STATUS.AVAILABLE } : t));
         setOrders(prev => {
             const newOrders = { ...prev };
-            delete newOrders[selectedTable.id]; // Xóa bỏ entry của bàn này
+            delete newOrders[selectedTable.id]; 
             return newOrders;
         });
-
         setSelectedTableId(null);
-        // 5. Thông báo cho người dùng
-        showToast("Đã hủy bàn và thông báo tới bếp!");
-
-    } catch (err) {
-        // 6. Xử lý lỗi (Ví dụ: Bếp đang nấu không cho hủy)
-        const errorMsg = err.response?.data || "Không thể hủy bàn này.";
-        // Nếu Backend trả về BadRequest kèm string, ta hiển thị nó
-        alert(typeof errorMsg === 'string' ? errorMsg : "Bàn có món đang nấu, không thể hủy!");
-        console.error("Cancel order error:", err);
     }
-}, [selectedTable, setOrders, setSelectedTableId]);
+  }, [selectedTable, orders]);
 
   /* ======================= CART ACTIONS (MÓN ĂN) ======================= */
   // 🔥 BƯỚC 4: Ràng buộc logic isSent
   const handleAddItem = useCallback((item) => {
     if (!selectedTable || selectedTable.status !== TABLE_STATUS.OCCUPIED) {
-      showToast("Vui lòng mở bàn trước khi thêm món!");
+      toast.warn("Vui lòng mở bàn trước khi thêm món!");
       return;
     }
 
     if (selectedOrder.status === 4 || selectedOrder.status === "Paid") {
-      showToast("Bàn này đã thanh toán! Vui lòng mở bàn mới nếu khách muốn gọi thêm.");
+      toast.warn("Bàn này đã thanh toán! Vui lòng mở bàn mới nếu khách muốn gọi thêm.");
       return;
     }
     updateOrder(selectedTable.id, current => {
@@ -335,13 +352,13 @@ export default function POSPage() {
     const unsentItems = selectedOrder.items.filter(i => !i.isSent);
     
     try {
-        let res;
+        let data;
         if (selectedOrder.orderId) {
-            res = await api.post(`/orders/${selectedOrder.orderId}/add-items`, unsentItems.map(i => ({
+            data = await addItemsToExistingOrder(selectedOrder.orderId, unsentItems.map(i => ({
                 menuItemId: i.id, quantity: i.quantity, price: i.price
             })));
         } else {
-            res = await api.post(`/orders`, {
+            data = await createNewOrder({
                 tableId: selectedTable.id,
                 items: unsentItems.map(i => ({ menuItemId: i.id, quantity: i.quantity, price: i.price }))
             });
@@ -349,10 +366,10 @@ export default function POSPage() {
 
         // 🔥 CẬP NHẬT CHUẨN PRODUCTION: 
         // Dùng dữ liệu Server trả về để ghi đè State tại chỗ
-        if (res.data) {
+        if (data) {
             updateOrder(selectedTable.id, {
-                orderId: res.data.id,
-                items: res.data.orderDetails.map(od => ({
+                orderId: data.id,
+                items: data.orderDetails.map(od => ({
                     id: od.menuItemId,
                     orderDetailId: od.id,
                     name: od.menuItem?.name || "Món ăn",
@@ -363,11 +380,11 @@ export default function POSPage() {
                 }))
             });
         }
-        
-        showToast("Đã báo bếp thành công!");
+
+        toast.success("Đã báo bếp thành công!");
     } catch (err) {
         console.error(err);
-        showToast("Lỗi báo bếp!");
+        toast.error("Lỗi báo bếp!");
     }
 }, [selectedTable, selectedOrder, updateOrder]);
 
@@ -379,20 +396,20 @@ export default function POSPage() {
 
   const confirmCancelItem = useCallback(async () => {
     try {
-      await api.put(`/orders/cancel-item/${itemToCancel.item.orderDetailId}?reason=${encodeURIComponent(itemToCancel.reason)}`);
-      showToast(`Đã hủy món ${itemToCancel.item.name}`);
+      await cancelItemInOrder(itemToCancel.item.orderDetailId, itemToCancel.reason);
+      toast.success(`Đã hủy món ${itemToCancel.item.name}`);
       setModalState(prev => ({ ...prev, cancelItem: false }));
       handleSelectTable(selectedTable); // Refresh lại DB
     } catch (err) {
       const msg = err.response?.data || "Hủy thất bại. Vui lòng gọi Quản lý!";
-      alert(msg);
+      toast.error(msg);
     }
   }, [itemToCancel, selectedTable, handleSelectTable]);
 
   /* ======================= PAYMENT ======================= */
   const handleOpenPayment = useCallback((paymentData) => {
     if (!selectedTable || selectedOrder.items.length === 0) {
-      alert("Không có hóa đơn để thanh toán"); return;
+      toast.warn("Không có hóa đơn để thanh toán"); return;
     }
     setPaymentSummary(paymentData); 
     setModalState(prev => ({ ...prev, payment: true }));
@@ -402,6 +419,16 @@ export default function POSPage() {
     if (!selectedTable || !paymentSummary) return;
     try {
       const totalDiscount = paymentSummary.summary.percentDiscount + paymentSummary.summary.voucherDiscount;
+      const validItemsToPay = selectedOrder.items.filter(i => i.itemStatus !== 4);
+      const groupedItemsForPayment = Object.values(
+        validItemsToPay.reduce((acc, item) => {
+          if (!acc[item.id]) {
+            acc[item.id] = { menuItemId: item.id, quantity: 0, price: item.price };
+          }
+          acc[item.id].quantity += item.quantity;
+          return acc;
+        }, {})
+      );
       const checkoutPayload = {
         tableId: selectedTable.id,
         phoneNumber: selectedOrder.customerPhone || null, 
@@ -411,15 +438,11 @@ export default function POSPage() {
         discountAmount: totalDiscount,
         finalAmount: paymentSummary.summary.finalAmount,
         // Chỉ thanh toán các món không bị hủy (ItemStatus != 4)
-        items: selectedOrder.items.filter(i => i.itemStatus !== 4).map(i => ({
-          menuItemId: i.id, quantity: i.quantity, price: i.price
-        }))
+        items: groupedItemsForPayment
       };
 
-      const response = await api.post("/orders/checkout", checkoutPayload);
-      const {earnedPoints, isClosed} = response.data;
+      const {earnedPoints, isClosed} = await checkoutOrder(checkoutPayload);
 
-      
       setPaymentSummary(null);
       setModalState(prev => ({ ...prev, payment: false }));
       if (isClosed) {
@@ -427,7 +450,7 @@ export default function POSPage() {
         setOrders(prev => { const clone = { ...prev }; delete clone[selectedTable.id]; return clone; });
         setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: TABLE_STATUS.AVAILABLE } : t));
         setSelectedTableId(null);
-        showToast("Thanh toán thành công và Đã đóng bàn!");
+        toast.success("Thanh toán thành công và Đã đóng bàn!");
       }else {
         // TRƯỜNG HỢP 2: Bếp CHƯA xong -> Giữ bàn màu đỏ, chỉ cập nhật trạng thái đơn thành Paid (4)
         updateOrder(selectedTable.id, current => ({
@@ -435,16 +458,16 @@ export default function POSPage() {
             status: 4 // Để giao diện (OrderPanel) biết mà khóa nút Báo bếp / Thanh toán lại
         }));
         // KHÔNG xóa order, KHÔNG đổi status bàn
-        showToast("Thanh toán thành công. Bàn đang chờ bếp phục vụ nốt!");
+        toast.info("Thanh toán thành công. Bàn đang chờ bếp phục vụ nốt!");
       }
 
       if (checkoutPayload.phoneNumber && earnedPoints > 0) {
-        alert(`Thanh toán thành công!\nKhách hàng được cộng ${earnedPoints} điểm.`);
-      } else { alert("Thanh toán thành công!"); }
+        toast.success(`Thanh toán thành công!\nKhách hàng được cộng ${earnedPoints} điểm.`);
+      } else { toast.success("Thanh toán thành công!"); }
 
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Lỗi kết nối tới hệ thống.";
-      alert("Thanh toán thất bại: " + errorMsg);
+      toast.error("Thanh toán thất bại: " + errorMsg);
     }
   }, [selectedTable, selectedOrder, paymentSummary]);
 
@@ -492,8 +515,12 @@ export default function POSPage() {
 
       {modalState.payment && (
         <PaymentModal
-          table={selectedTable} order={selectedOrder.items} summary={paymentSummary?.summary}          
-          customerPhone={selectedOrder.customerPhone} cashGiven={paymentSummary?.cashGiven}       
+          table={selectedTable} 
+          order={selectedOrder.items} 
+          orderId={selectedOrder.orderId}
+          summary={paymentSummary?.summary}          
+          customerPhone={selectedOrder.customerPhone} 
+          cashGiven={paymentSummary?.cashGiven}       
           change={paymentSummary?.change}             
           onClose={() => setModalState(prev => ({ ...prev, payment: false }))}
           onConfirm={handleFinalPayment}
@@ -555,7 +582,7 @@ export default function POSPage() {
         </div>
       )}
 
-      {/* TOAST NOTIFICATION */}
+      {/* TOAST NOTIFICATION
       {toast && (
         <div className="fixed top-6 right-6 z-70 animate-fade-in-down">
           <div className="bg-teal-600 text-white px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3">
@@ -563,7 +590,7 @@ export default function POSPage() {
             <span className="font-medium">{toast}</span>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

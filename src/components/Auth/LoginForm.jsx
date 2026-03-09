@@ -43,7 +43,7 @@ export default function LoginForm() {
 
       setTimeout(() => {
         if (from) navigate(from, { replace: true });
-        else navigate("/pos", { replace: true });
+        else navigate("/portal", { replace: true });
       }, 1000);
 
     } catch (err) {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import api from "../../API/axios";
 import { FiArrowLeft, FiClock, FiCalendar, FiUser, FiInfo, FiDownload } from "react-icons/fi";
 import * as XLSX from 'xlsx'; 
+import { getEmployeeAttendanceDetail } from "../../API/Service/attendanceServices";
 
 export default function AttendanceDetail() {
   const { userId } = useParams();
@@ -23,10 +23,10 @@ export default function AttendanceDetail() {
   const fetchDetails = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/attendance/details?userId=${userId}&month=${month}&year=${year}`);
-      setData(res.data.sessions || []);
-      setEmployeeInfo(res.data.fullName);
-      if (res.data.length > 0) setEmployeeInfo(res.data[0].fullName);
+      const data = await getEmployeeAttendanceDetail(userId, month, year);
+      setData(data.sessions || []);
+      setEmployeeInfo(data.fullName);
+      if (data.length > 0) setEmployeeInfo(data[0].fullName);
     } catch (err) {
       console.error("Lỗi tải chi tiết", err);
     } finally {

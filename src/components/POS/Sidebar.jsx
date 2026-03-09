@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; 
 import { 
   FiShoppingCart, 
-  FiUsers, 
-  FiCoffee, 
-  FiPieChart, 
   FiUser,
-  FiTag,
-  FiCalendar 
+  FiHome,
+  FiGrid,
+  FiLogOut,
+  FiSettings
 } from "react-icons/fi";
 
 export default function Sidebar() {
@@ -15,113 +14,116 @@ export default function Sidebar() {
   const location = useLocation(); 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  const fullName = localStorage.getItem("fullName") || "Nhân viên";
+  // Lấy thông tin user từ LocalStorage và dọn dẹp chuỗi (đề phòng dính dấu ngoặc kép)
+  const fullName = localStorage.getItem("fullName")?.replace(/['"]/g, '') || "Nhân viên";
+  const role = localStorage.getItem("role")?.replace(/['"]/g, '').trim();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("fullName");
-    localStorage.removeItem("username");
+    localStorage.clear(); // Xóa sạch token, role, info... cho an toàn tuyệt đối
     navigate("/login");
   };
 
-  const isActive = (path) => location.pathname.startsWith(path);
+  // Hàm kiểm tra active linh hoạt
+  const isActive = (path) => location.pathname === path;
+  
+  // Nút Quản trị sẽ sáng lên nếu user đang ở trong MỘT TRONG CÁC trang quản lý
+  const adminRoutes = ['/dashboard', '/users', '/categories', '/menu-items', '/vouchers', '/reports', '/attendance', '/tables'];
+  const isAdminActive = adminRoutes.some(route => location.pathname.startsWith(route));
 
   return (
-    <div className="flex flex-col items-center py-6 h-full bg-gray-800 text-white relative">
+    <div className="flex flex-col items-center py-6 h-full bg-gray-900 text-white relative w-20 shadow-xl z-50">
       
       {/* LOGO */}
-      <div className="text-xl font-bold mb-8 text-[#ff7b00]">PL RES</div>
+      <div 
+        onClick={() => navigate('/portal')}
+        className="text-xl font-black mb-8 text-[#ff7b00] cursor-pointer hover:scale-110 transition-transform"
+        title="Về cổng chính"
+      >
+        PL
+      </div>
 
-      <div className="flex flex-col items-center space-y-6 w-full">
+      <div className="flex flex-col items-center space-y-8 w-full">
         
-        {/* Nút Bán hàng */}
+        {/* Nút 1: Về Cổng Chọn Bộ Phận (Portal) */}
+        <button 
+          onClick={() => navigate('/portal')}
+          className={`flex flex-col items-center text-sm transition-all w-full group
+          ${isActive('/portal') ? 'text-[#ff7b00]' : 'text-gray-400 hover:text-white'}`}
+          title="Màn hình chính"
+        >
+          <FiHome className={`text-2xl mb-1 group-hover:scale-110 transition-transform ${isActive('/portal') && 'drop-shadow-[0_0_8px_rgba(255,123,0,0.5)]'}`} />
+          <span className="text-[10px] uppercase font-bold tracking-wider mt-1">Cổng</span>
+        </button>
+
+        {/* Nút 2: Không gian Bán hàng (POS) */}
         <button 
           onClick={() => navigate('/pos')}
-          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/pos') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
+          className={`flex flex-col items-center text-sm transition-all w-full group
+          ${isActive('/pos') ? 'text-[#ff7b00]' : 'text-gray-400 hover:text-white'}`}
+          title="Bán hàng"
         >
-          <FiShoppingCart className="text-2xl mb-1" />
-          <span>Bán hàng</span>
+          <FiShoppingCart className={`text-2xl mb-1 group-hover:scale-110 transition-transform ${isActive('/pos') && 'drop-shadow-[0_0_8px_rgba(255,123,0,0.5)]'}`} />
+          <span className="text-[10px] uppercase font-bold tracking-wider mt-1">POS</span>
         </button>
 
-        {/* Nút User */}
-        <button 
-          onClick={() => navigate('/users')}
-          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/users') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
-        >
-          <FiUsers className="text-2xl mb-1" />
-          <span>User</span>
-        </button>
-
-        {/* Nút Thực đơn */}
-        <button 
-          onClick={() => navigate('/categories')}
-          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/categories') || isActive('/menu-items') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
-        >
-          <FiCoffee className="text-2xl mb-1" />
-          <span>Thực đơn</span>
-        </button>
-
-        {/* Nút Voucher */}
-        <button 
-          onClick={() => navigate('/vouchers')}
-          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/vouchers') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
-        >
-          <FiTag className="text-2xl mb-1" />
-          <span>Voucher</span>
-        </button>
-
-        {/* Nút Báo cáo */}
-        <button 
-          onClick={() => navigate('/reports')}
-          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/reports') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
-        >
-          <FiPieChart className="text-2xl mb-1" />
-          <span>Báo cáo</span>
-        </button>
-        {/* Nút Chấm công*/}
-        <button 
-          onClick={() => navigate('/attendance')}
-          className={`flex flex-col items-center text-sm transition-colors w-full ${isActive('/attendance') ? 'text-[#ff7b00]' : 'text-gray-300 hover:text-white'}`}
-        >
-          <FiCalendar className="text-2xl mb-1" />
-          <span>Chấm công</span>
-        </button>
+        {/* Nút 3: Không gian Quản trị (Admin Dashboard) */}
+        {/* 🔥 TÍNH NĂNG BẢO MẬT: Chỉ hiển thị nút này nếu role là Admin */}
+        {role === "Admin" && (
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className={`flex flex-col items-center text-sm transition-all w-full group
+            ${isAdminActive ? 'text-[#ff7b00]' : 'text-gray-400 hover:text-white'}`}
+            title="Quản trị hệ thống"
+          >
+            <FiGrid className={`text-2xl mb-1 group-hover:scale-110 transition-transform ${isAdminActive && 'drop-shadow-[0_0_8px_rgba(255,123,0,0.5)]'}`} />
+            <span className="text-[10px] uppercase font-bold tracking-wider mt-1">Quản lý</span>
+          </button>
+        )}
 
       </div>
 
-      {/*PROFILE */}
+      {/* KHU VỰC CÁ NHÂN (PROFILE) */}
       <div className="mt-auto relative flex flex-col items-center w-full">
         <button 
           onClick={() => setShowProfileMenu(!showProfileMenu)} 
-          className="flex flex-col items-center text-sm text-gray-300 hover:text-white transition-colors cursor-pointer group"
+          className="flex flex-col items-center transition-all cursor-pointer group"
         >
-          <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center mb-1 border border-gray-500 group-hover:border-gray-300 transition-colors">
+          {/* Avatar thu gọn */}
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-1 border-2 transition-colors
+            ${showProfileMenu ? 'bg-gray-700 border-[#ff7b00] text-[#ff7b00]' : 'bg-gray-800 border-gray-600 text-gray-300 group-hover:border-gray-400 group-hover:text-white'}`}
+          >
             <FiUser className="text-xl" />
           </div>
-          <span className="text-xs truncate w-16 text-center">{fullName}</span>
+          <span className="text-[10px] font-medium truncate w-16 text-center text-gray-400 group-hover:text-white">
+            {/* Lấy chữ cái đầu hoặc tên ngắn gọn để không bị tràn */}
+            {fullName.split(' ').pop()} 
+          </span>
         </button>
 
+        {/* Popup Menu Nổi (Sửa lại UI để sang trọng hơn) */}
         {showProfileMenu && (
-          <div className="absolute bottom-2 left-full ml-4 w-48 bg-white text-gray-800 rounded-lg shadow-xl border overflow-hidden z-50">
-            <div className="px-4 py-3 border-b bg-gray-50">
-              <p className="text-xs text-gray-500">Đang đăng nhập</p>
-              <p className="font-bold text-sm truncate">{fullName}</p>
+          <div className="absolute bottom-4 left-16 ml-2 w-56 bg-white text-gray-800 rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in">
+            <div className="px-5 py-4 border-b bg-slate-50">
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">Tài khoản</p>
+              <p className="font-bold text-sm truncate text-slate-800">{fullName}</p>
+              <p className="text-xs text-[#ff7b00] font-bold mt-1">{role}</p>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col py-2">
               <button 
                 onClick={() => {
                   setShowProfileMenu(false);
                   // navigate("/change-password"); 
                 }}
-                className="text-left px-4 py-2 text-sm hover:bg-gray-100 font-medium transition-colors"
+                className="flex items-center gap-3 px-5 py-2.5 text-sm hover:bg-slate-100 font-medium transition-colors text-slate-700"
               >
+                <FiSettings className="text-slate-400" />
                 Đổi mật khẩu
               </button>
               <button 
                 onClick={handleLogout}
-                className="text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium transition-colors border-t"
+                className="flex items-center gap-3 px-5 py-2.5 text-sm hover:bg-red-50 font-medium transition-colors text-red-600"
               >
+                <FiLogOut className="text-red-400" />
                 Đăng xuất
               </button>
             </div>

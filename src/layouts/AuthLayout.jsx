@@ -9,7 +9,7 @@ export default function AuthLayout({ children, image }) {
 
       <div className="flex-1 flex justify-center items-center bg-[#f7f4f4]">
         <div className="  flex justify-center items-center
-                          w-[60%] h-[80%]
+                          w-[60%] h-[90%]
                           bg-white
                           rounded-[10px]
                           shadow-[0_2px_10px_rgba(0,0,0,0.1)]">

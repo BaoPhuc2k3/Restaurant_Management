@@ -8,7 +8,7 @@ export default function LayoutApp() {
     <div className="flex h-screen w-full bg-gray-100 overflow-hidden">
       
       {/* 1. CỘT SIDEBAR (Cố định bên trái) */}
-      <div className="w-20 shrink-0 bg-gray-800 text-white h-full z-20 shadow-lg">
+      <div className="w-20 shrink-0 bg-gray-800 text-white h-full z-20 shadow-lg print:hidden">
         <Sidebar />
       </div>
 

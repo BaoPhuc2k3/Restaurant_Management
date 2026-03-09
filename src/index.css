@@ -76,3 +76,39 @@ button:focus-visible {
   box-sizing: border-box;
 } */
 @import "tailwindcss";
+
+@media print {
+  /* Thiết lập khổ giấy máy in nhiệt K80 */
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  /* Ép nền màu trắng, xóa bỏ nền tối/xám của hệ thống */
+  html, body {
+    background-color: white !important;
+  }
+
+  /* Tàng hình TOÀN BỘ mọi thứ trên màn hình (Bao gồm cả trang POS, Menu, Nút bấm) */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* CHỈ CHO PHÉP vùng chứa tờ hóa đơn được phép hiện hình */
+  #receipt-content, #receipt-content * {
+    visibility: visible !important;
+  }
+
+  /* Bốc tờ hóa đơn ra khỏi khung Modal, ép dính chặt lên góc trái trên cùng tờ giấy */
+  #receipt-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 10px !important; /* Lề một chút cho chữ khỏi sát mép giấy */
+    background: white !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+}

@@ -3,16 +3,18 @@ import { FiPlus, FiEdit, FiShield, FiKey, FiLock, FiUnlock } from "react-icons/f
 import { 
   getAllUsers, createUser, updateUser, toggleUserStatus, resetUserPassword 
 } from "../../API/Service/userServices";
+import { useNavigate } from "react-router-dom";
 
 export default function UserManagement() {
+  const navigate = useNavigate();
+
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({ 
-    username: "", password: "", fullName: "", type: "Employee"
+    username: "", password: "", fullName: "", roleId: 4
   });
-
 
   const [dialog, setDialog] = useState({
     isOpen: false,
@@ -47,9 +49,9 @@ export default function UserManagement() {
   const handleOpenModal = (user = null) => {
     setEditingUser(user);
     if (user) {
-      setFormData({ username: user.username, password: "", fullName: user.fullName, type: user.type });
+      setFormData({ username: user.username, password: "", fullName: user.fullName, roleId: user.roleId });
     } else {
-      setFormData({ username: "", password: "", fullName: "", type: "Employee" });
+      setFormData({ username: "", password: "", fullName: "", roleId: 4 });
     }
     setIsModalOpen(true);
   };
@@ -62,7 +64,7 @@ export default function UserManagement() {
 
     try {
       if (editingUser) {
-        await updateUser(editingUser.id, { fullName: formData.fullName, type: formData.type });
+        await updateUser(editingUser.id, { fullName: formData.fullName, roleId: formData.roleId });
         showDialog('success', 'Thành công', 'Cập nhật tài khoản thành công!');
       } else {
         if (!formData.password) {
@@ -115,7 +117,7 @@ export default function UserManagement() {
           <p className="text-sm text-gray-500 mt-1">Quản lý tài khoản và phân quyền hệ thống</p>
         </div>
         <button 
-          onClick={() => handleOpenModal()}
+          onClick={() => navigate("/register")}
           className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
         >
           <FiPlus className="text-lg" />
@@ -144,8 +146,10 @@ export default function UserManagement() {
                   <td className="px-6 py-4 font-medium text-gray-900">{user.username}</td>
                   <td className="px-6 py-4 text-gray-700">{user.fullName}</td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${user.type === 'Admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                      <FiShield /> {user.type === 'Admin' ? 'Quản trị viên' : 'Nhân viên'}
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${user.roleId === 1 ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                      <FiShield /> {user.roleId === 1 ? 'Quản trị viên' : 
+                                    user.roleId === 2 ? 'Phục vụ' : 
+                                    user.roleId === 3 ? 'Thu ngân' : 'Bếp '}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
@@ -230,18 +234,20 @@ export default function UserManagement() {
                 />
               </div>
 
-              <div>
+             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Vai trò</label>
                 <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({...formData, type: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500"
+                    value={formData.roleId}
+                    onChange={(e) => setFormData({...formData, roleId: Number(e.target.value)})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500"
                 >
-                  <option value="Employee">Nhân viên (Employee)</option>
-                  <option value="Admin">Quản trị viên (Admin)</option>
+                    <option value={1}>Quản trị viên (Admin)</option>
+                    <option value={2}>Phục vụ (Staff)</option>
+                    <option value={3}>Thu ngân (Cashier)</option>
+                    <option value={4}>Bếp (Kitchen)</option>
                 </select>
-              </div>
             </div>
+        </div>
 
             <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
               <button 

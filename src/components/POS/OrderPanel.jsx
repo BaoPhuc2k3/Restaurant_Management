@@ -122,8 +122,31 @@ export default function OrderPanel({
   // 🔥 TÁCH ORDER THÀNH 2 NHÓM: ĐÃ GỬI BẾP & CHƯA GỬI
   const sentItems = order.filter(item => item.isSent);
   const unsentItems = order.filter(item => !item.isSent);
-  console.log("trang thai don hang", orderStatus);
   const isPaid = orderStatus === 4 || orderStatus === "Paid"; 
+
+  const displaySentItems = useMemo(() => {
+    const result = [];
+    const mergedMap = {};
+
+    sentItems.forEach(item => {
+      // Chỉ gộp nếu món Đã lên bàn (3) hoặc Đã hủy (4)
+      if (item.itemStatus === 3 || item.itemStatus === 4) {
+        const key = `${item.id}-${item.itemStatus}`; // Gộp theo ID món + Trạng thái
+        if (!mergedMap[key]) {
+          mergedMap[key] = { ...item };
+          result.push(mergedMap[key]);
+        } else {
+          mergedMap[key].quantity += item.quantity; // Cộng dồn số lượng
+        }
+      } else {
+        // Các món 0, 1, 2 (Chờ/Đang nấu/Đã xong) phải giữ nguyên từng dòng độc lập
+        // Để thu ngân còn bấm nút "Hủy/Đổi" theo đúng mã orderDetailId
+        result.push({ ...item });
+      }
+    });
+
+    return result;
+  }, [sentItems]);
 
   /* === RENDER === */
   if (!table) {
@@ -179,13 +202,13 @@ export default function OrderPanel({
           )}
 
           {/* KHU VỰC 1: CÁC MÓN ĐÃ BÁO BẾP */}
-          {sentItems.length > 0 && (
+          {displaySentItems.length > 0 && (
             <div className="bg-white rounded border shadow-sm overflow-hidden">
               <div className="bg-gray-200 text-gray-600 text-xs font-bold px-3 py-1.5 uppercase flex justify-between">
                 <span>Đã báo bếp</span>
-                <span>{sentItems.length} món</span>
+                <span>{displaySentItems.reduce((sum, i) => sum + i.quantity, 0)} món</span>
               </div>
-              {sentItems.map((item, index) => {
+              {displaySentItems.map((item, index) => {
                 const isCancelled = item.itemStatus === 4;
                 const statusInfo = STATUS_UI[item.itemStatus] || STATUS_UI[0];
                 const uniqueKey = `sent-${item.orderDetailId || item.id}-${index}`;

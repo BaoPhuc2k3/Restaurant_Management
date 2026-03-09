@@ -1,7 +1,13 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { HubConnectionBuilder } from "@microsoft/signalr";
-import api from "../../API/axios";
-import { FiClock, FiCheckCircle, FiPlayCircle, FiAlertCircle, FiList, FiX, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { toast } from "react-toastify";
+import { FiClock, FiCheckCircle, FiPlayCircle, FiAlertCircle, FiList, FiX, FiChevronDown, FiChevronUp, FiHome } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { 
+  getPendingKitchenItems, 
+  getKitchenHistoryToday, 
+  updateKitchenItemStatus 
+} from "../../API/Service/kitchenServices";
 
 const removeVietnameseTones = (str = "") =>
   str
@@ -12,6 +18,8 @@ const removeVietnameseTones = (str = "") =>
     .trim();
 
 export default function KitchenPage() {
+  const navigate = useNavigate();
+
   const [pendingOrders, setPendingOrders] = useState([]);
   
   // 🔥 STATE MỚI CHO LỊCH SỬ
@@ -38,8 +46,8 @@ export default function KitchenPage() {
   // 1. Lấy danh sách món đang chờ từ API
   const fetchPendingItems = async () => {
     try {
-      const res = await api.get("/kitchen/pending-items");
-      const grouped = groupByTableAndBatch(res.data);
+      const data = await getPendingKitchenItems();
+      const grouped = groupByTableAndBatch(data) || [];
       setPendingOrders(grouped);
     } catch (err) {
       console.error("Lỗi tải danh sách bếp:", err);
@@ -49,12 +57,12 @@ export default function KitchenPage() {
   // 🔥 1.5. Lấy danh sách Lịch sử hôm nay
   const fetchHistoryItems = async () => {
     try {
-      const res = await api.get("/kitchen/history-today");
-      setHistoryItems(res.data);
+      const data = await getKitchenHistoryToday();
+      setHistoryItems(data);
       setShowHistory(true); // Mở Modal
     } catch (err) {
       console.error("Lỗi tải lịch sử:", err);
-      alert("Không thể tải dữ liệu lịch sử!");
+      toast.error("Không thể tải dữ liệu lịch sử!");
     }
   };
 
@@ -102,13 +110,13 @@ export default function KitchenPage() {
   // 3. Cập nhật trạng thái món
   const updateStatus = async (orderDetailId, nextStatus) => {
     try {
-      await api.put(`/kitchen/update-status/${orderDetailId}`, nextStatus);
+      await updateKitchenItemStatus(orderDetailId, nextStatus);
       fetchPendingItems(); // Load lại danh sách
       
       // Nếu đang mở bảng lịch sử, cập nhật luôn bảng lịch sử để nó real-time
       if (showHistory) fetchHistoryItems();
     } catch (err) {
-      alert("Không thể cập nhật trạng thái!");
+      toast.error("Không thể cập nhật trạng thái!");
     }
   };
 
@@ -153,10 +161,24 @@ export default function KitchenPage() {
   return (
     <div className="min-h-screen bg-slate-900 p-6 relative">
       <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
-        <h1 className="text-3xl font-black text-white flex items-center gap-3">
-          <span className="w-4 h-4 bg-orange-500 rounded-full animate-ping"></span>
-          HỆ THỐNG ĐIỀU PHỐI BẾP (KDS)
-        </h1>
+        
+        <div className="flex items-center gap-6">
+          {/* NÚT THOÁT VỀ CỔNG PORTAL: Dành riêng cho Bếp trưởng / Admin thoát ra ngoài */}
+          <button 
+            onClick={() => navigate('/portal')}
+            className="flex flex-col items-center justify-center w-12 h-12 bg-slate-800 hover:bg-orange-500 text-slate-400 hover:text-white rounded-xl transition-all duration-300 border border-slate-700 hover:border-orange-500 hover:shadow-[0_0_15px_rgba(249,115,22,0.5)] group"
+            title="Thoát về màn hình chọn phòng"
+          >
+            <FiHome className="text-xl group-hover:-translate-y-0.5 transition-transform" />
+            <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-1">Thoát</span>
+          </button>
+
+          {/* TIÊU ĐỀ TRANG BẾP */}
+          <h1 className="text-3xl font-black text-white flex items-center gap-3">
+            <span className="w-4 h-4 bg-orange-500 rounded-full animate-ping"></span>
+            HỆ THỐNG ĐIỀU PHỐI BẾP (KDS)
+          </h1>
+        </div>
         
         <div className="flex items-center gap-4">
           <div className="text-slate-400 text-sm">
