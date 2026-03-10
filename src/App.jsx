@@ -33,6 +33,8 @@ import AdminDashboard from './components/AdminManagement/AdminDashboard'
 import TableManagement from './components/AdminManagement/TableManagement'
 import DailyDashboard from './components/AdminManagement/DailyReports';
 import HistoryManagement from './components/AdminManagement/HistoryManagement';
+import CustomerOrder from './pages/CustomerOrder/CustomerOrder';
+import OrderApprovalPage from './pages/OrderApprove/OrderApprovePage';
 
 // 🔥 COMPONENT BẢO VỆ ĐƯỜNG DẪN (Người gác cổng)
 const ProtectedRoute = ({ children, allowedRoles, loginPath = "/login" }) => {
@@ -73,6 +75,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/timekeep/login" element={<LoginAttendance />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/order/:tableId" element={<CustomerOrder />} />
         
         {/* 🔥 ĐỔI HƯỚNG MẶC ĐỊNH: Gõ domain gốc sẽ phi thẳng vào Portal */}
         <Route path="/" element={<Navigate to="/portal" replace />} />
@@ -125,6 +128,7 @@ function App() {
           
           {/* -- Tuyến đường cho Thu Ngân / Phục Vụ / Admin -- */}
           <Route path="/pos" element={<POSPage />}/>
+            <Route path="/order-approvals" element={<OrderApprovalPage />} />
           
           {/* -- Tuyến đường QUẢN TRỊ (CHỈ ADMIN MỚI VÀO ĐƯỢC) -- */}
           {/* Chặn 2: Phục vụ/Thu ngân gõ link quản lý sẽ bị đá về Portal */}

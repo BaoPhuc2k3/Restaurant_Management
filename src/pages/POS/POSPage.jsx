@@ -213,6 +213,50 @@ export default function POSPage() {
 
             toast.info(`Bếp đã lên đủ món. Bàn ${tableId} tự động đóng!`);
         });
+
+       connection.on("OrderConfirmedByStaff", async (tableIdToUpdate) => {
+    // 1. Lấy ID bàn
+    const id = typeof tableIdToUpdate === 'object' ? tableIdToUpdate.tableId : tableIdToUpdate;
+    toast.success(`📥 Bàn ${id} vừa được cập nhật đơn mới từ hệ thống!`);
+
+    // 2. Cập nhật ngay lập tức sơ đồ bàn thành màu đỏ (Occupied)
+    setTables(prev => prev.map(t => t.id === id ? { ...t, status: TABLE_STATUS.OCCUPIED } : t));
+
+    // 3. Gọi API lấy lại toàn bộ danh sách bàn (để đảm bảo đồng bộ 100% với DB)
+    try {
+        const freshTables = await getAllTables();
+        setTables(freshTables);
+    } catch (e) {
+        console.error("Lỗi khi load lại sơ đồ bàn:", e);
+    }
+
+    // 4. NẾU THU NGÂN ĐANG MỞ ĐÚNG BÀN ĐÓ -> Tự động load lại danh sách món ăn
+    if (selectedTableIdRef.current === id) {
+        try {
+            const data = await getActiveOrderByTable(id);
+            if (data) {
+                setOrders(prev => ({
+                    ...prev,
+                    [id]: {
+                        orderId: data.id,
+                        status: data.status,
+                        items: data.orderDetails.map(od => ({
+                            id: od.menuItemId,
+                            orderDetailId: od.id,
+                            name: od.menuItem?.name || `Món ${od.menuItemId}`,
+                            price: od.price,
+                            quantity: od.quantity,
+                            itemStatus: od.itemStatus,
+                            isSent: true // Đã lưu DB tức là đã xác nhận
+                        }))
+                    }
+                }));
+            }
+        } catch (err) {
+            console.error("Lỗi tự động load lại đơn hàng:", err);
+        }
+    }
+});
       })
       .catch(err => {
         // Bỏ qua lỗi AbortError ảo của React khi unmount nhanh
