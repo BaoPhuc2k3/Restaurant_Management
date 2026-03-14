@@ -43,7 +43,7 @@ export default function AdminDashboard() {
     },
     { 
       id: 7, title: "Báo Cáo Ngày", description: "Theo dõi doanh thu trong ngày", 
-      icon: <FiTrendingUp className="text-4xl" />, path: "/dashboard", // Nhớ kiểm tra lại path trong file Router của bạn
+      icon: <FiTrendingUp className="text-4xl" />, path: "/dashboard/daily-summary", // Nhớ kiểm tra lại path trong file Router của bạn
       color: "bg-teal-50 text-teal-600 hover:shadow-teal-200", iconBg: "bg-teal-100" 
     },
     { 

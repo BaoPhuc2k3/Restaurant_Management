@@ -73,14 +73,15 @@ export default function KitchenPage() {
         acc[key] = {
           tableId: item.tableId,
           batchNumber: item.batchNumber,
-          orderTime: item.orderTime,
+          // orderTime: item.orderTime,
+          sendTime: item.sendTime + "Z",
           items: []
         };
       }
       acc[key].items.push(item);
       return acc;
     } , {});
-    return Object.values(groups).sort((a, b) => new Date(a.orderTime) - new Date(b.orderTime));
+    return Object.values(groups).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
   };
 
   // 2. Kết nối SignalR để nhận thông báo thời gian thực
@@ -181,9 +182,7 @@ export default function KitchenPage() {
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="text-slate-400 text-sm">
-            Đang trực tuyến: {new Date().toLocaleTimeString()}
-          </div>
+          
           
           {/* 🔥 NÚT LỊCH SỬ MỚI */}
           <button 
@@ -206,7 +205,7 @@ export default function KitchenPage() {
               </div>
               <div className="text-right">
                 <div className="flex items-center gap-1 text-orange-600 font-bold text-sm">
-                  <FiClock /> {new Date(ticket.orderTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  <FiClock /> {new Date(ticket.sendTime).toLocaleTimeString("vi-VN", {hour: '2-digit', minute:'2-digit'})}
                 </div>
                 <div className="text-[10px] text-slate-400">Lượt gọi: #{ticket.batchNumber}</div>
               </div>
@@ -340,7 +339,7 @@ export default function KitchenPage() {
                             Đơn #{group.orderId}
                           </span>
                           <span className="text-slate-400 text-sm flex items-center gap-1.5 ml-2 border-l border-slate-600 pl-4">
-                            <FiClock /> {new Date(group.orderTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            <FiClock /> {new Date(group.orderTime).toLocaleTimeString("vi-VN", {hour: '2-digit', minute:'2-digit'})}
                           </span>
                         </div>
                         

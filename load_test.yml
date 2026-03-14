@@ -1,0 +1,32 @@
+config:
+  target: "https://localhost:7291" # URL Backend của bạn
+  tls:
+    rejectUnauthorized: false # Bỏ qua lỗi SSL nếu bạn dùng localhost https (quan trọng!)
+  payload:
+    path: "tables.csv"
+    fields:
+      - "tableId"
+    order: "random" # Lấy ngẫu nhiên bàn để test tính thực tế
+  phases:
+    - duration: 30
+      arrivalRate: 5  # Mỗi giây có 5 yêu cầu gửi đi
+      name: "Kiểm tra tải gửi đơn hàng"
+
+scenarios:
+  - name: "Khách hàng gửi yêu cầu gọi món"
+    flow:
+      # 1. Giả lập truy cập trang menu trước
+      - get:
+          url: "http://localhost:5173/order/{{ tableId }}"
+      - think: 2
+
+      # 2. Thực hiện POST dữ liệu giống hệt hàm axios của bạn
+      - post:
+          url: "/api/orders/customer-submit"
+          json:
+            tableId: "{{ tableId }}"
+            items:
+              - menuItemId: 1 # Giả lập ID món ăn số 1
+                quantity: 2
+              - menuItemId: 3 # Giả lập ID món ăn số 3
+                quantity: 1

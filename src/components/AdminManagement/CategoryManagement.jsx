@@ -157,12 +157,7 @@ export default function CategoryManagement() {
       {/* HEADER */}
       <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
         <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate(-1)} 
-            className="p-2 hover:bg-gray-200 rounded-full transition-colors text-teal-700"
-          >
-            <FiArrowLeft className="text-xl" />
-          </button>
+          
           <h1 className="text-xl font-bold text-teal-800">Quản lý Danh mục</h1>
         </div>
         

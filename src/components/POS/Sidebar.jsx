@@ -6,7 +6,8 @@ import {
   FiHome,
   FiGrid,
   FiLogOut,
-  FiSettings
+  FiSettings,
+  FiCheckSquare
 } from "react-icons/fi";
 
 export default function Sidebar() {
@@ -64,6 +65,16 @@ export default function Sidebar() {
         >
           <FiShoppingCart className={`text-2xl mb-1 group-hover:scale-110 transition-transform ${isActive('/pos') && 'drop-shadow-[0_0_8px_rgba(255,123,0,0.5)]'}`} />
           <span className="text-[10px] uppercase font-bold tracking-wider mt-1">POS</span>
+        </button>
+        
+        <button 
+          onClick={() => navigate('/order-approvals')}
+          className={`flex flex-col items-center text-sm transition-all w-full group
+          ${isActive('/order-approvals') ? 'text-[#ff7b00]' : 'text-gray-400 hover:text-white'}`}
+          title="Phê duyệt Order"
+        >
+          <FiCheckSquare className={`text-2xl mb-1 group-hover:scale-110 transition-transform ${isActive('/order-approvals') && 'drop-shadow-[0_0_8px_rgba(255,123,0,0.5)]'}`} />
+          <span className="text-[10px] uppercase font-bold tracking-wider mt-1">Duyệt</span>
         </button>
 
         {/* Nút 3: Không gian Quản trị (Admin Dashboard) */}

@@ -73,6 +73,14 @@ export default function OrderPanel({
   const [extraFee, setExtraFee] = useState(0);
   const [cashGiven, setCashGiven] = useState(0);
 
+  useEffect(() => {
+    setDiscountPercent(0);
+    setExtraFee(0);
+    setCashGiven(0);
+    // Lưu ý: customerPhone và selectedVoucher đã được quản lý bởi hàm onUpdateOrderInfo từ component cha,
+    // nên nếu cha làm đúng, chúng sẽ tự reset. Ở đây ta chỉ reset state nội bộ của OrderPanel.
+  }, [table?.id]);
+
   /* === LOAD DỮ LIỆU KHÁCH & VOUCHER (Giữ nguyên của bạn) === */
   useEffect(() => {
     const loadVouchers = async () => {
@@ -230,9 +238,9 @@ export default function OrderPanel({
                         {(item.price * item.quantity).toLocaleString()}
                       </span>
                       {/* Nút Xin Hủy món (chỉ hiện khi chưa hủy và chưa bưng ra) */}
-                      {!isCancelled && item.itemStatus < 3 && (
+                      {!isCancelled && item.itemStatus < 1 && !isPaid && (
                         <button onClick={() => onRequestCancelItem(item)} className="text-[10px] text-red-500 hover:text-red-700 underline">
-                          Hủy/Đổi
+                          Hủy
                         </button>
                       )}
                     </div>
@@ -253,7 +261,7 @@ export default function OrderPanel({
                 const uniqueKey = `sent-${item.orderDetailId || item.id}-${index}`;
                 return(
                 <div key={uniqueKey} className="grid grid-cols-12 items-center text-sm px-3 py-2 border-b border-teal-100 last:border-0 hover:bg-teal-100/50">
-                  <div className="col-span-4 font-medium text-teal-900 truncate">{item.name}</div>
+                  <div className="col-span-4 font-medium  text-teal-900 truncate">{item.name}</div>
                   
                   {/* Nút cộng trừ (chỉ cho phép ở món chưa báo bếp) */}
                   <div className="col-span-3 flex justify-center items-center gap-1">
@@ -285,11 +293,25 @@ export default function OrderPanel({
         <div className="grid grid-cols-2 gap-4 mb-3">
           <div className="flex items-center gap-2">
             <label className="w-16 text-gray-500 text-xs font-semibold uppercase">Giảm %</label>
-            <input type="number" value={discountPercent} onChange={e => setDiscountPercent(Number(e.target.value))} className="flex-1 border rounded px-2 py-1 text-sm bg-gray-50 focus:bg-white focus:border-teal-500" />
+            <input type="number" 
+                   disabled={isPaid}
+                   placeholder="0"
+                   value={discountPercent == 0 ? "" : discountPercent} 
+                   onChange={e => {
+                       const val = e.target.value;
+                       setDiscountPercent(val === "" ? 0 : Number(val)); 
+            }} className="flex-1 border rounded px-2 py-1 text-sm bg-gray-50 focus:bg-white focus:border-teal-500" />
           </div>
           <div className="flex items-center gap-2">
             <label className="w-16 text-gray-500 text-xs font-semibold uppercase">Phụ thu</label>
-            <input type="number" value={extraFee} onChange={e => setExtraFee(Number(e.target.value))} className="flex-1 border rounded px-2 py-1 text-sm bg-gray-50 focus:bg-white focus:border-teal-500" />
+            <input type="number" 
+                   disabled={isPaid}
+                   placeholder="0"
+                   value={extraFee == 0 ? "" : extraFee} 
+                   onChange={e => {
+                       const val = e.target.value;
+                       setExtraFee(val === "" ? 0 : Number(val));
+            }} className="flex-1 border rounded px-2 py-1 text-sm bg-gray-50 focus:bg-white focus:border-teal-500" />
           </div>
         </div>
 
@@ -348,7 +370,7 @@ export default function OrderPanel({
                 };
                 const cleanPhone = (customerPhone || "").trim();
                 if (cleanPhone && !/^0\d{9}$/.test(cleanPhone)) { alert("SĐT không hợp lệ"); return; }
-                onPayment({ summary, cashGiven, change });
+                onPayment({ summary, cashGiven, change, extraFee, discountPercent});
               }}
               disabled={isPaid}
               className={`flex-1 text-white py-3 rounded-lg text-base font-bold shadow-md transition-colors ${order.length > 0 ? 'bg-teal-600 hover:bg-teal-700' : 'bg-gray-300 cursor-not-allowed'}`}

@@ -35,6 +35,8 @@ import DailyDashboard from './components/AdminManagement/DailyReports';
 import HistoryManagement from './components/AdminManagement/HistoryManagement';
 import CustomerOrder from './pages/CustomerOrder/CustomerOrder';
 import OrderApprovalPage from './pages/OrderApprove/OrderApprovePage';
+import DailyReports from './components/AdminManagement/DailyReports';
+
 
 // 🔥 COMPONENT BẢO VỆ ĐƯỜNG DẪN (Người gác cổng)
 const ProtectedRoute = ({ children, allowedRoles, loginPath = "/login" }) => {
@@ -128,7 +130,7 @@ function App() {
           
           {/* -- Tuyến đường cho Thu Ngân / Phục Vụ / Admin -- */}
           <Route path="/pos" element={<POSPage />}/>
-            <Route path="/order-approvals" element={<OrderApprovalPage />} />
+          <Route path="/order-approvals" element={<OrderApprovalPage />} />
           
           {/* -- Tuyến đường QUẢN TRỊ (CHỈ ADMIN MỚI VÀO ĐƯỢC) -- */}
           {/* Chặn 2: Phục vụ/Thu ngân gõ link quản lý sẽ bị đá về Portal */}
@@ -144,6 +146,7 @@ function App() {
             <Route path="/attendance/:userId" element={<AttendanceDetail />} />
             <Route path="/reports" element={<AdminReport />} />
             <Route path="/history" element={<HistoryManagement />} />
+            <Route path="/dashboard/daily-summary" element={<DailyReports />} />
           </Route>
           
         </Route>

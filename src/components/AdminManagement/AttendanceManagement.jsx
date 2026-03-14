@@ -224,7 +224,7 @@ export default function AttendanceManager() {
                     className="hover:bg-teal-50 transition-colors cursor-pointer group"
                     title="Click để xem chi tiết"
                   >
-                    <td className="p-4 font-mono text-sm text-gray-500 group-hover:text-teal-600">{row.username}</td>
+                    <td className="p-4 font-mono text-sm text-gray-500 group-hover:text-teal-600">{row.id}</td>
                     <td className="p-4 font-medium text-gray-800 group-hover:text-teal-600">{row.fullName}</td>
                     <td className="p-4 text-right">
                       <span className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full font-bold border border-teal-100">

@@ -119,6 +119,7 @@ export default function POSPage() {
   /* ======================= TABLE SELECT ======================= */
   // 🔥 BƯỚC 3: Lấy dữ liệu Order thật từ DB khi chọn Bàn
   const handleSelectTable = useCallback(async (table) => {
+    console.log("Đang chọn bàn có ID là:", table.id, table);
     if (table.status === TABLE_STATUS.AVAILABLE) {
       setTableToOpen(table);
       setModalState(prev => ({ ...prev, openTable: true }));
@@ -174,6 +175,22 @@ export default function POSPage() {
         
         connection.on("ItemStatusChanged", (data) => {
           const { tableId, orderDetailId, newStatus } = data;
+          if (newStatus === 2) { 
+             // Trạng thái 2 = Đã xong
+             toast.info(`🔔 Bàn ${tableId} có món đã nấu xong. Vui lòng mang lên!`, {
+                 position: "top-center",
+                 autoClose: 5000,
+                 hideProgressBar: false,
+                 closeOnClick: true,
+                 pauseOnHover: true,
+                 draggable: true,
+                 theme: "colored",
+             });
+
+             // Tuỳ chọn: Thêm âm thanh nếu muốn
+             const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"); // Tiếng chuông dọn món
+             audio.play().catch(e => console.log("Trình duyệt chặn âm thanh"));
+            }
     
           // Nếu POS đang mở đúng bàn mà Bếp vừa cập nhật
           if (selectedTableIdRef.current === tableId) {
@@ -356,7 +373,7 @@ export default function POSPage() {
       }
       return { ...current, items: newItems };
     });
-  }, [selectedTable, updateOrder]);
+  }, [selectedTable, selectedOrder, updateOrder]);
 
   const handleIncrease = useCallback((itemId) => {
     if (!selectedTable) return;
@@ -481,6 +498,8 @@ export default function POSPage() {
         totalAmount: paymentSummary.summary.subtotal,
         discountAmount: totalDiscount,
         finalAmount: paymentSummary.summary.finalAmount,
+        extraFee: paymentSummary.extraFee || 0,
+        discountPercent: paymentSummary.discountPercent || 0,
         // Chỉ thanh toán các món không bị hủy (ItemStatus != 4)
         items: groupedItemsForPayment
       };

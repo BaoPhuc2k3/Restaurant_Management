@@ -37,6 +37,7 @@ export default function LoginForm() {
       localStorage.setItem("role", data.role);
       localStorage.setItem("fullName", data.fullName);
       localStorage.setItem("username", data.username);
+      localStorage.setItem("userId", data.id);
 
       // Toast báo thành công
       setToast({ message: "Đăng nhập thành công!", type: "success" });
@@ -53,37 +54,37 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-[80%]">
+    <div className="w-[90%] mx-auto">
       <h2 className="text-center text-[#ff7b00] mb-5 font-bold uppercase">LOGIN</h2>
 
       <form onSubmit={handleLogin}>
         <div className="relative w-full mb-4">
-          <FiUser className="absolute left-2 top-[50%] -translate-y-1/2 text-[18px] text-[#666] pointer-events-none" />
+          <FiUser className="absolute left-2 top-[37%]  -translate-y-1/2 text-[18px] text-[#666] pointer-events-none" />
           <Input 
             placeholder="User Name"
-            className="pl-8" 
+            className="pl-9" 
             value={username}
             onChange={e => setUsername(e.target.value)}
           />
         </div>
 
-        <div className="relative w-full mb-4">
-          <FiLock className="absolute left-2 top-[50%] -translate-y-1/2 text-[18px] text-[#666] pointer-events-none" />
+        <div className="relative w-full mb-10 ">
+          <FiLock className="absolute left-2 top-[37%] -translate-y-1/2 text-[18px] text-[#666] pointer-events-none" />
           <Input 
             placeholder="Password" 
             type="password" 
-            className="pl-8"
+            className="pl-9"
             value={password}
             onChange={e => setPassword(e.target.value)}
           />
         </div>
 
-        <div className="text-right mb-2">
+        {/* <div className="text-right mb-2">
           <a href="#" className="text-[#ff7b00] text-[15px] hover:underline">Forgot password?</a>
-        </div>
+        </div> */}
         
         <div className="text-left mb-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-white/80">
              Vui lòng liên hệ Admin nếu chưa có tài khoản.
           </p>
         </div>
@@ -93,8 +94,8 @@ export default function LoginForm() {
         </Button>
       </form>
 
-      <div className="mt-4 text-center">
-        <span className="block mb-2 text-gray-500">Or</span>
+      {/* <div className="mt-4 text-center">
+        <span className="block mb-2 text-white/80">Or</span>
         <Button
           onClick={() => window.location.href = "/auth/google"}
         >
@@ -107,7 +108,7 @@ export default function LoginForm() {
           />
           Login with Google
         </Button>
-      </div>
+      </div> */}
 
       {/* TOAST NOTIFICATION */}
       {toast && (

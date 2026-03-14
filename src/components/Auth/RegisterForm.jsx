@@ -6,6 +6,7 @@ import { useState } from "react";
 import { register } from "../../API/Service/authServices";
 import { useNavigate } from "react-router-dom"; // 🔥 Dùng để chuyển trang sau khi thành công
 
+
 export default function RegisterForm() {
   const navigate = useNavigate();
 
@@ -62,7 +63,7 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="w-[80%] mx-auto]">
+    <div className="w-[90%] mx-auto">
       <h2 className="text-center text-[#ff7b00] mb-6 font-bold text-[22px] uppercase">
         Tạo Tài Khoản Nhân Viên
       </h2>

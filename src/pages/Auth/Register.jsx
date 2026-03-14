@@ -1,10 +1,10 @@
 import AuthLayout from "../../layouts/AuthLayout";
 import RegisterForm from "../../components/Auth/RegisterForm";
-// import registerBg from "../../assets/images/register-bg.png";
+import bgImage from "../../assets/images/photo-background.jpg";
 
 export default function Register() {
   return (
-    <AuthLayout >
+    <AuthLayout image={bgImage}>
       <RegisterForm />
     </AuthLayout>
   );

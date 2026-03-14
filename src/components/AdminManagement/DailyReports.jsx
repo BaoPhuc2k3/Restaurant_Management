@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { 
   FiShoppingBag, FiCreditCard, FiDollarSign, FiTag, 
-  FiCheckCircle, FiXCircle, FiCalendar 
+  FiCheckCircle, FiXCircle, FiCalendar, FiActivity 
 } from "react-icons/fi";
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+} from 'recharts';
 import reportService from "../../API/Service/reportServices";
 
 export default function DailyDashboard() {
@@ -10,7 +13,8 @@ export default function DailyDashboard() {
   const [data, setData] = useState({
     summary: { totalOrders: 0, subTotal: 0, finalTotal: 0, vouchersUsed: 0 },
     completedItems: [],
-    canceledItems: []
+    canceledItems: [],
+    hourlyData: [] // Dữ liệu cho biểu đồ
   });
   const [loading, setLoading] = useState(true);
 
@@ -19,15 +23,19 @@ export default function DailyDashboard() {
       setLoading(true);
       try {
         const resData = await reportService.getDailySummary(selectedDate);
+        
+        // 🟢 NỐI TRỰC TIẾP DỮ LIỆU TỪ BACKEND
         setData({
           summary: {
-            totalOrders: resData.summary.totalOrders,
-            subTotal: resData.summary.subTotal,
-            finalTotal: resData.summary.finalTotal,
-            vouchersUsed: resData.summary.vouchersUsed
+            totalOrders: resData.summary?.totalOrders || 0,
+            subTotal: resData.summary?.subTotal || 0,
+            finalTotal: resData.summary?.finalTotal || 0,
+            vouchersUsed: resData.summary?.vouchersUsed || 0
           },
-          completedItems: resData.completedItems,
-          canceledItems: resData.canceledItems
+          completedItems: resData.completedItems || [],
+          canceledItems: resData.canceledItems || [],
+          // Lấy mảng HourlyData từ C# gửi xuống (mặc định mảng rỗng nếu không có dữ liệu)
+          hourlyData: resData.hourlyData || [] 
         });
       } catch (error) {
         console.error("Lỗi tải báo cáo ngày", error);
@@ -42,7 +50,6 @@ export default function DailyDashboard() {
   if (loading) return <div className="p-10 text-center font-bold text-gray-500">Đang tải báo cáo ngày...</div>;
 
   return (
-    // 🔥 Đổi h-screen thành min-h-screen và đảm bảo cho phép overflow
     <div className="p-6 bg-slate-50 min-h-screen overflow-y-auto">
       
       {/* HEADER */}
@@ -64,7 +71,6 @@ export default function DailyDashboard() {
 
       {/* 4 THẺ CHỈ SỐ KINH DOANH TRỌNG TÂM */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* 1. Tổng đơn hàng */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tổng đơn hàng</p>
@@ -75,7 +81,6 @@ export default function DailyDashboard() {
           </div>
         </div>
 
-        {/* 2. Tiền gốc (Chưa trừ Voucher) */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Gốc (Chưa trừ Voucher)</p>
@@ -86,7 +91,6 @@ export default function DailyDashboard() {
           </div>
         </div>
 
-        {/* 3. Tiền thực thu (Đã trừ Voucher) */}
         <div className="bg-white p-5 rounded-xl border border-emerald-200 bg-emerald-50/30 shadow-sm flex items-center justify-between relative overflow-hidden">
           <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500"></div>
           <div>
@@ -98,7 +102,6 @@ export default function DailyDashboard() {
           </div>
         </div>
 
-        {/* 4. Tổng Voucher đã dùng */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Voucher đã dùng</p>
@@ -110,12 +113,48 @@ export default function DailyDashboard() {
         </div>
       </div>
 
+      {/* 🟢 KHU VỰC BIỂU ĐỒ TRỰC TIẾP TỪ BACKEND */}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
+        <div className="flex items-center gap-2 mb-6">
+          <FiActivity className="text-emerald-500 text-xl" />
+          <h3 className="font-bold text-slate-800 text-lg">Lưu lượng đơn hàng đến theo giờ</h3>
+        </div>
+        
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data.hourlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+              <Tooltip 
+                contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                labelStyle={{ fontWeight: 'bold', color: '#334155' }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="orders" 
+                name="Số đơn hàng"
+                stroke="#10b981" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorOrders)" 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
       {/* DANH SÁCH MÓN ĂN (2 CỘT) */}
-      {/* 🔥 Thay đổi mb-8 thành pb-10 để phần dưới cùng không bị khuất sát mép màn hình */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
         
         {/* CỘT 1: TẤT CẢ MÓN ĐÃ HOÀN THÀNH */}
-        {/* 🔥 Bỏ max-height cứng (h-[500px]), thay bằng max-h-[600px] để bảng co giãn linh hoạt */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[600px]">
           <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-emerald-50/50">
             <h3 className="font-bold text-emerald-800 flex items-center gap-2">
@@ -159,7 +198,6 @@ export default function DailyDashboard() {
         </div>
 
         {/* CỘT 2: TẤT CẢ MÓN BỊ HỦY */}
-        {/* 🔥 Tương tự cột 1 */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[600px]">
           <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-rose-50/50">
             <h3 className="font-bold text-rose-800 flex items-center gap-2">
