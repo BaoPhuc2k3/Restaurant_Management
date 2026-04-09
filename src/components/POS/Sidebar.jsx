@@ -34,7 +34,7 @@ export default function Sidebar() {
   return (
     <div className="flex flex-col items-center py-6 h-full bg-gray-900 text-white relative w-20 shadow-xl z-50">
       
-      {/* LOGO */}
+
       <div 
         onClick={() => navigate('/portal')}
         className="text-xl font-black mb-8 text-[#ff7b00] cursor-pointer hover:scale-110 transition-transform"
@@ -45,7 +45,7 @@ export default function Sidebar() {
 
       <div className="flex flex-col items-center space-y-8 w-full">
         
-        {/* Nút 1: Về Cổng Chọn Bộ Phận (Portal) */}
+
         <button 
           onClick={() => navigate('/portal')}
           className={`flex flex-col items-center text-sm transition-all w-full group
@@ -56,7 +56,7 @@ export default function Sidebar() {
           <span className="text-[10px] uppercase font-bold tracking-wider mt-1">Cổng</span>
         </button>
 
-        {/* Nút 2: Không gian Bán hàng (POS) */}
+
         <button 
           onClick={() => navigate('/pos')}
           className={`flex flex-col items-center text-sm transition-all w-full group
@@ -77,8 +77,6 @@ export default function Sidebar() {
           <span className="text-[10px] uppercase font-bold tracking-wider mt-1">Duyệt</span>
         </button>
 
-        {/* Nút 3: Không gian Quản trị (Admin Dashboard) */}
-        {/* 🔥 TÍNH NĂNG BẢO MẬT: Chỉ hiển thị nút này nếu role là Admin */}
         {role === "Admin" && (
           <button 
             onClick={() => navigate('/dashboard')}
@@ -93,20 +91,18 @@ export default function Sidebar() {
 
       </div>
 
-      {/* KHU VỰC CÁ NHÂN (PROFILE) */}
       <div className="mt-auto relative flex flex-col items-center w-full">
         <button 
           onClick={() => setShowProfileMenu(!showProfileMenu)} 
           className="flex flex-col items-center transition-all cursor-pointer group"
         >
-          {/* Avatar thu gọn */}
+
           <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-1 border-2 transition-colors
             ${showProfileMenu ? 'bg-gray-700 border-[#ff7b00] text-[#ff7b00]' : 'bg-gray-800 border-gray-600 text-gray-300 group-hover:border-gray-400 group-hover:text-white'}`}
           >
             <FiUser className="text-xl" />
           </div>
           <span className="text-[10px] font-medium truncate w-16 text-center text-gray-400 group-hover:text-white">
-            {/* Lấy chữ cái đầu hoặc tên ngắn gọn để không bị tràn */}
             {fullName.split(' ').pop()} 
           </span>
         </button>

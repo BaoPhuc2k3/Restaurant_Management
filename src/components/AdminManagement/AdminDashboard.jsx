@@ -2,13 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FiUsers, FiGrid, FiTag, FiClock, FiPieChart, FiLayout,
-  FiTrendingUp, FiFileText // 🔥 Import thêm 2 icon mới
+  FiTrendingUp, FiFileText 
 } from 'react-icons/fi';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
-  // Mảng chứa thông tin các ô quản lý
+  
   const managementModules = [
     { 
       id: 1, title: "Tài Khoản", description: "Quản lý nhân viên & phân quyền", 
@@ -35,15 +35,15 @@ export default function AdminDashboard() {
       icon: <FiClock className="text-4xl" />, path: "/attendance", 
       color: "bg-indigo-50 text-indigo-600 hover:shadow-indigo-200", iconBg: "bg-indigo-100" 
     },
-    // 🔥 BỔ SUNG NÚT SỐ 8: LỊCH SỬ ĐƠN HÀNG
+    
     { 
       id: 6, title: "Lịch Sử Đơn", description: "Tra cứu hóa đơn & in lại Bill", 
-      icon: <FiFileText className="text-4xl" />, path: "/history", // Nhớ kiểm tra lại path trong file Router của bạn
+      icon: <FiFileText className="text-4xl" />, path: "/history", 
       color: "bg-rose-50 text-rose-600 hover:shadow-rose-200", iconBg: "bg-rose-100" 
     },
     { 
       id: 7, title: "Báo Cáo Ngày", description: "Theo dõi doanh thu trong ngày", 
-      icon: <FiTrendingUp className="text-4xl" />, path: "/dashboard/daily-summary", // Nhớ kiểm tra lại path trong file Router của bạn
+      icon: <FiTrendingUp className="text-4xl" />, path: "/dashboard/daily-summary", 
       color: "bg-teal-50 text-teal-600 hover:shadow-teal-200", iconBg: "bg-teal-100" 
     },
     { 

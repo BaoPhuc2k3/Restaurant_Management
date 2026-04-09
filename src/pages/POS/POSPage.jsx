@@ -57,7 +57,7 @@ export default function POSPage() {
     openTable: false,
     payment: false,
     cancelConfirm: false,
-    cancelItem: false // 🔥 Modal Hủy từng món
+    cancelItem: false // Modal Hủy từng món
   });
 
   const [tableToOpen, setTableToOpen] = useState(null);
@@ -117,7 +117,7 @@ export default function POSPage() {
   }, []);
 
   /* ======================= TABLE SELECT ======================= */
-  // 🔥 BƯỚC 3: Lấy dữ liệu Order thật từ DB khi chọn Bàn
+  // BƯỚC 3: Lấy dữ liệu Order thật từ DB khi chọn Bàn
   const handleSelectTable = useCallback(async (table) => {
     console.log("Đang chọn bàn có ID là:", table.id, table);
     if (table.status === TABLE_STATUS.AVAILABLE) {
@@ -164,14 +164,13 @@ export default function POSPage() {
   // 3. Kết nối SignalR (CHỈ CHẠY ĐÚNG 1 LẦN)
   useEffect(() => {
     const connection = new HubConnectionBuilder()
-      // LƯU Ý: Vẫn phải đảm bảo port 7291 này khớp với Backend C# của bạn nhé
       .withUrl("https://localhost:7291/kitchenHub") 
       .withAutomaticReconnect()
       .build();
 
     connection.start()
       .then(() => {
-        console.log("📡 POS đã kết nối bộ đàm với Bếp thành công!");
+        console.log("POS đã kết nối bộ đàm với Bếp thành công!");
         
         connection.on("ItemStatusChanged", (data) => {
           const { tableId, orderDetailId, newStatus } = data;
@@ -209,6 +208,18 @@ export default function POSPage() {
             });
           }
         });
+        connection.on("HasNewUnconfirmedOrder", (data) => {
+          console.log("Đã nhận đơn mới từ khách:", data);
+          toast.info("Có đơn hàng mới",{
+            position: "top-right",
+            autoClose: 5000, 
+            theme: "colored"
+          })
+
+          const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+          audio.play().catch(e => console.log("Chặn âm thanh tự động"));
+        });
+
 
         connection.on("TableClosed", (data) => {
             const { tableId } = data;
@@ -234,7 +245,7 @@ export default function POSPage() {
        connection.on("OrderConfirmedByStaff", async (tableIdToUpdate) => {
     // 1. Lấy ID bàn
     const id = typeof tableIdToUpdate === 'object' ? tableIdToUpdate.tableId : tableIdToUpdate;
-    toast.success(`📥 Bàn ${id} vừa được cập nhật đơn mới từ hệ thống!`);
+    toast.success(`Bàn ${id} vừa được cập nhật đơn mới từ hệ thống!`);
 
     // 2. Cập nhật ngay lập tức sơ đồ bàn thành màu đỏ (Occupied)
     setTables(prev => prev.map(t => t.id === id ? { ...t, status: TABLE_STATUS.OCCUPIED } : t));
@@ -301,7 +312,7 @@ export default function POSPage() {
     }
   }, [tableToOpen]);
 
-  /* ======================= CANCEL TABLE (HỦY CẢ BÀN) ======================= */
+  
   /* ======================= CANCEL TABLE (HỦY CẢ BÀN) ======================= */
   // 1. Hàm này chỉ làm nhiệm vụ: Bật Dialog xác nhận (Không gọi API)
   const handleCancelOrder = useCallback(() => {
@@ -325,7 +336,7 @@ export default function POSPage() {
     try {
         await cancelOrder(selectedTable.id);
         clearTableState();
-        toast.success("Đã hủy bàn và thông báo tới bếp!"); // Dùng toast xịn
+        toast.success("Đã hủy bàn và thông báo tới bếp!"); 
     } catch (err) {
         const status = err.response?.status;
         if (status === 404 || status === 400) {
@@ -334,9 +345,9 @@ export default function POSPage() {
             return;
         }
         const errorMsg = err.response?.data || "Không thể hủy bàn này.";
-        toast.error(typeof errorMsg === 'string' ? errorMsg : "Bàn có món đang nấu, không thể hủy!"); // Toast đỏ báo lỗi
+        toast.error(typeof errorMsg === 'string' ? errorMsg : "Bàn có món đang nấu, không thể hủy!"); 
     } finally {
-        setModalState(prev => ({ ...prev, cancelConfirm: false })); // Đóng Dialog
+        setModalState(prev => ({ ...prev, cancelConfirm: false })); 
     }
 
     function clearTableState() {
@@ -351,7 +362,6 @@ export default function POSPage() {
   }, [selectedTable, orders]);
 
   /* ======================= CART ACTIONS (MÓN ĂN) ======================= */
-  // 🔥 BƯỚC 4: Ràng buộc logic isSent
   const handleAddItem = useCallback((item) => {
     if (!selectedTable || selectedTable.status !== TABLE_STATUS.OCCUPIED) {
       toast.warn("Vui lòng mở bàn trước khi thêm món!");
@@ -407,7 +417,6 @@ export default function POSPage() {
   }, [selectedTable, updateOrder]);
 
   /* ======================= GỬI BẾP VÀ HỦY TỪNG MÓN ======================= */
-  // 🔥 BƯỚC 5: Gửi món xuống bếp
   const handleSendToKitchen = useCallback(async () => {
     if (!selectedTable || !selectedOrder) return;
     const unsentItems = selectedOrder.items.filter(i => !i.isSent);
@@ -425,7 +434,6 @@ export default function POSPage() {
             });
         }
 
-        // 🔥 CẬP NHẬT CHUẨN PRODUCTION: 
         // Dùng dữ liệu Server trả về để ghi đè State tại chỗ
         if (data) {
             updateOrder(selectedTable.id, {
@@ -449,7 +457,7 @@ export default function POSPage() {
     }
 }, [selectedTable, selectedOrder, updateOrder]);
 
-  // 🔥 Xử lý yêu cầu Hủy 1 món ĐÃ GỬI BẾP
+  // Xử lý yêu cầu Hủy 1 món ĐÃ GỬI BẾP
   const handleRequestCancelItem = useCallback((item) => {
     setItemToCancel({ item, reason: "Khách đổi ý" });
     setModalState(prev => ({ ...prev, cancelItem: true }));
@@ -513,7 +521,7 @@ export default function POSPage() {
         setOrders(prev => { const clone = { ...prev }; delete clone[selectedTable.id]; return clone; });
         setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: TABLE_STATUS.AVAILABLE } : t));
         setSelectedTableId(null);
-        toast.success("Thanh toán thành công và Đã đóng bàn!");
+        // toast.success("Thanh toán thành công và Đã đóng bàn!");
       }else {
         // TRƯỜNG HỢP 2: Bếp CHƯA xong -> Giữ bàn màu đỏ, chỉ cập nhật trạng thái đơn thành Paid (4)
         updateOrder(selectedTable.id, current => ({
@@ -526,7 +534,8 @@ export default function POSPage() {
 
       if (checkoutPayload.phoneNumber && earnedPoints > 0) {
         toast.success(`Thanh toán thành công!\nKhách hàng được cộng ${earnedPoints} điểm.`);
-      } else { toast.success("Thanh toán thành công!"); }
+      } 
+      // else { toast.success("Thanh toán thành công!"); }
 
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Lỗi kết nối tới hệ thống.";
@@ -534,7 +543,6 @@ export default function POSPage() {
     }
   }, [selectedTable, selectedOrder, paymentSummary]);
 
-  /* ======================= RENDER ======================= */
   return (
     <div className="h-full flex bg-gray-100">
       <div className="flex flex-1 overflow-hidden">
@@ -571,7 +579,7 @@ export default function POSPage() {
         </div>
       </div>
 
-      {/* MODALS CŨ CỦA BẠN */}
+
       {modalState.openTable && (
         <OpenTableModal table={tableToOpen} onConfirm={handleConfirmOpenTable} onCancel={() => setModalState(prev => ({ ...prev, openTable: false }))} />
       )}
@@ -616,7 +624,7 @@ export default function POSPage() {
         </div>
       )}
 
-      {/* 🔥 MODAL MỚI: XÁC NHẬN HỦY 1 MÓN */}
+      {/* MODAL MỚI: XÁC NHẬN HỦY 1 MÓN */}
       {modalState.cancelItem && itemToCancel.item && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl w-96 overflow-hidden">

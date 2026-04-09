@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { HubConnectionBuilder } from "@microsoft/signalr";
-import { FiShoppingCart, FiPlus, FiMinus, FiSend, FiSearch, FiX } from "react-icons/fi";
+import { FiShoppingCart, FiPlus, FiMinus, FiSend, FiSearch, FiX, FiInfo } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 // --- HELPERS ---
@@ -24,6 +24,9 @@ export default function CustomerOrder() {
   const [connection, setConnection] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [showCartModal, setShowCartModal] = useState(false);
+  
+  // 🔥 STATE MỚI: Dùng để lưu món ăn đang được chọn để xem mô tả
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,12 +51,10 @@ export default function CustomerOrder() {
       .withUrl("https://localhost:7291/kitchenHub") 
       .withAutomaticReconnect().build();
       conn.on("OrderRejected", (data) => {
-      // Nhận data từ C# trả về (ví dụ: { tableId: 5, reason: "Hết món" })
-      // Phải parse `tableId` của URL (là chuỗi) sang số để so sánh cho chắc chắn
       if (data.tableId === parseInt(tableId)) {
-        toast.error(`❌ Yêu cầu của bạn đã bị từ chối!\nLý do: ${data.reason}`, {
+        toast.error(`Yêu cầu của bạn đã bị từ chối!\nLý do: ${data.reason}`, {
           position: "top-center",
-          autoClose: false, // Bắt khách phải tự bấm tắt để chắc chắn họ đã đọc
+          autoClose: false, 
           theme: "colored"
         });
       }
@@ -105,7 +106,7 @@ export default function CustomerOrder() {
 
       await axios.post("https://localhost:7291/api/orders/customer-submit", payload);
 
-      toast.success("🚀 Đã gửi yêu cầu tới thu ngân!");
+      toast.success("Đã gửi yêu cầu tới thu ngân!");
       setCart([]);
       setShowCartModal(false);
     } catch (err) { 
@@ -117,10 +118,10 @@ export default function CustomerOrder() {
   };
 
   return (
-    <div className="h-screen bg-gray-50 font-sans text-gray-800 flex flex-col lg:flex-row overflow-hidden">
+    <div className="h-screen bg-gray-50 font-sans text-gray-800 flex flex-col lg:flex-row overflow-hidden relative">
       
-      {/* 🟠 DANH SÁCH MENU */}
-      <div className="flex-1 overflow-y-auto p-3 lg:p-6 no-scrollbar">
+      {/* DANH SÁCH MENU */}
+      <div className="flex-1 overflow-y-auto p-3 lg:p-6 no-scrollbar pb-24 lg:pb-6">
         <header className="mb-4">
           <h1 className="text-xl lg:text-2xl font-black text-teal-700 uppercase tracking-tight">Menu Bàn {tableId}</h1>
           <p className="text-[10px] lg:text-sm text-gray-400">Chọn món bạn yêu thích</p>
@@ -132,7 +133,7 @@ export default function CustomerOrder() {
           <input 
             type="text"
             placeholder="Tìm món ăn..."
-            className="w-full pl-10 pr-4 py-2 bg-white rounded-xl shadow-sm border-none text-sm focus:ring-2 focus:ring-teal-600"
+            className="w-full pl-10 pr-4 py-2 bg-white rounded-xl shadow-sm border-none text-sm focus:ring-2 focus:ring-teal-600 outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -156,14 +157,32 @@ export default function CustomerOrder() {
         {/* Grid Món ăn */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredMenuItems.map(item => (
-            <div key={item.id} className="bg-white p-3 rounded-2xl shadow-sm flex justify-between items-center border border-gray-50 active:bg-teal-50 transition-colors">
+            <div key={item.id} className="bg-white p-3 rounded-2xl shadow-sm flex justify-between items-center border border-gray-50 transition-colors hover:border-teal-100">
               <div className="flex-1 pr-4">
                 <h3 className="font-bold text-sm lg:text-base text-gray-700 leading-tight">{item.name}</h3>
+                
+                {/* 🟢 MÔ TẢ TRÊN MÀN HÌNH LỚN (PC) */}
+                {item.description && (
+                  <p className="hidden lg:block text-xs text-gray-500 mt-1 line-clamp-2">
+                    {item.description}
+                  </p>
+                )}
+
+                {/* 🟢 NÚT "XEM MÔ TẢ" TRÊN ĐIỆN THOẠI */}
+                {item.description && (
+                  <button 
+                    onClick={() => setSelectedItem(item)}
+                    className="lg:hidden text-[11px] text-teal-600 font-semibold mt-1 flex items-center gap-1 hover:underline"
+                  >
+                    <FiInfo size={12} /> Xem mô tả
+                  </button>
+                )}
+
                 <p className="text-teal-700 font-black text-sm mt-1">{item.price.toLocaleString()}đ</p>
               </div>
               <button 
                 onClick={() => addToCart(item)}
-                className="bg-teal-600 text-white p-2 rounded-xl shadow-md shadow-teal-200 active:scale-90 transition-transform hover:bg-teal-700"
+                className="bg-teal-600 text-white p-2 rounded-xl shadow-md shadow-teal-200 active:scale-90 transition-transform hover:bg-teal-700 shrink-0"
               >
                 <FiPlus size={20} />
               </button>
@@ -172,11 +191,11 @@ export default function CustomerOrder() {
         </div>
       </div>
 
-      {/* 🟢 GIỎ HÀNG DẠNG SIDEBAR (CHO MÀN HÌNH LỚN LG) */}
-      <div className="hidden lg:flex w-[400px] bg-white border-l shadow-xl flex-col h-full">
+      {/* GIỎ HÀNG DẠNG SIDEBAR (CHO MÀN HÌNH LỚN LG) */}
+      <div className="hidden lg:flex w-100 bg-white border-l shadow-xl flex-col h-full z-10">
          <div className="p-4 bg-teal-700 text-white font-bold text-lg flex justify-between">
-            <span>Giỏ hàng</span>
-            <span>Bàn {tableId}</span>
+           <span>Giỏ hàng</span>
+           <span>Bàn {tableId}</span>
          </div>
          <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {cart.map(item => (
@@ -208,7 +227,7 @@ export default function CustomerOrder() {
          </div>
       </div>
 
-      {/* 🔴 NÚT GIỎ HÀNG NỔI (CHỈ HIỆN TRÊN MOBILE KHI CÓ MÓN) */}
+      {/* NÚT GIỎ HÀNG NỔI (CHỈ HIỆN TRÊN MOBILE KHI CÓ MÓN) */}
       {cart.length > 0 && (
         <button 
           onClick={() => setShowCartModal(true)}
@@ -224,13 +243,10 @@ export default function CustomerOrder() {
         </button>
       )}
 
-      {/* 🔴 MODAL GIỎ HÀNG (BOTTOM SHEET) TRÊN MOBILE */}
+      {/* MODAL GIỎ HÀNG (BOTTOM SHEET) TRÊN MOBILE */}
       {showCartModal && (
         <div className="lg:hidden fixed inset-0 z-[100] flex flex-end flex-col">
-          {/* Lớp nền mờ */}
           <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={() => setShowCartModal(false)}></div>
-          
-          {/* Nội dung modal */}
           <div className="relative mt-auto bg-white w-full rounded-t-[30px] shadow-2xl flex flex-col max-h-[80vh] animate-slide-up">
             <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto my-3" onClick={() => setShowCartModal(false)}></div>
             
@@ -271,6 +287,53 @@ export default function CustomerOrder() {
           </div>
         </div>
       )}
+
+      {/* 🔥 MODAL CHI TIẾT MÓN ĂN (MỚI THÊM) */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 lg:hidden">
+          {/* Lớp nền đen mờ */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" 
+            onClick={() => setSelectedItem(null)}
+          ></div>
+          
+          {/* Khung nội dung */}
+          <div className="relative bg-white w-full max-w-sm rounded-[24px] shadow-2xl p-6 animate-fade-in-down">
+            {/* Nút đóng */}
+            <button 
+              onClick={() => setSelectedItem(null)} 
+              className="absolute top-4 right-4 bg-gray-100 hover:bg-gray-200 p-2 rounded-full text-gray-500 transition-colors"
+            >
+              <FiX size={20}/>
+            </button>
+
+            {/* Tiêu đề & Giá */}
+            <div className="pr-10">
+              <h2 className="text-xl font-black text-gray-800 leading-tight">{selectedItem.name}</h2>
+              <p className="text-teal-600 font-black text-xl mt-2">{selectedItem.price.toLocaleString()}đ</p>
+            </div>
+
+            {/* Mô tả chi tiết */}
+            <div className="mt-5 bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                {selectedItem.description || "Món ăn này chưa có mô tả chi tiết."}
+              </p>
+            </div>
+
+            {/* Nút thêm vào giỏ */}
+            <button 
+              onClick={() => { 
+                addToCart(selectedItem); 
+                setSelectedItem(null); // Tự động đóng popup sau khi thêm món
+              }}
+              className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl flex justify-center items-center gap-2 active:scale-95 transition-transform shadow-lg shadow-teal-200"
+            >
+              <FiPlus size={20}/> Thêm vào giỏ
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

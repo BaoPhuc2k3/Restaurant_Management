@@ -39,7 +39,7 @@ export default function LoginForm() {
       localStorage.setItem("username", data.username);
       localStorage.setItem("userId", data.id);
 
-      // Toast báo thành công
+
       setToast({ message: "Đăng nhập thành công!", type: "success" });
 
       setTimeout(() => {

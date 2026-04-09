@@ -71,9 +71,9 @@ export default function MenuList({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState(0);
 
-  /* ================================
-     FILTER LOGIC
-  ================================= */
+
+    //  FILTER LOGIC
+
 
   const filteredItems = useMemo(() => {
     return menuItems.filter((item) => {
@@ -92,14 +92,13 @@ export default function MenuList({
     [onAddItem]
   );
 
-  /* ================================
-     RENDER
-  ================================= */
+
+    //  RENDER
+
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
 
-      {/* ================= SEARCH + CATEGORY (GIỮ NGUYÊN) ================= */}
 
       <div className="sticky top-0 bg-gray-50 pt-2 space-y-3 z-10 px-2">
 
@@ -146,7 +145,7 @@ export default function MenuList({
         </div>
       </div>
 
-      {/* ================= TABLE HEADER ================= */}
+      {/* TABLE HEADER */}
 
       <div className="grid grid-cols-12 px-3 py-2 bg-gray-100 text-xs font-semibold text-gray-600 border-b">
         <div className="col-span-1">STT</div>
@@ -155,7 +154,7 @@ export default function MenuList({
         <div className="col-span-2 text-right">Thêm</div>
       </div>
 
-      {/* ================= LIST ================= */}
+      {/*  LIST  */}
 
       <div className="flex-1 overflow-y-auto bg-white">
 

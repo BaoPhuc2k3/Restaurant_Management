@@ -54,17 +54,15 @@ export default function LoginAttendance() {
   };
 
   return (
-    // 🟢 THAY ĐỔI LỚN Ở ĐÂY: Dùng ảnh làm nền cho toàn bộ trang
+   
     <div 
       className="w-full h-screen bg-cover bg-center bg-no-repeat relative flex items-center justify-center lg:justify-end lg:pr-32"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      {/* Lớp phủ đen mờ để làm nổi bật form */}
+     
       <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
 
-      {/* FORM ĐĂNG NHẬP (Đặt nổi lên trên lớp nền mờ) */}
       <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 sm:p-10 mx-4">
-        
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm">
             <FiUser />

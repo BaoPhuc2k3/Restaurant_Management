@@ -4,13 +4,13 @@ import Button from "../UI/Button";
 import InputWithIcon from "../UI/InputWithIcon";
 import { useState } from "react";
 import { register } from "../../API/Service/authServices";
-import { useNavigate } from "react-router-dom"; // 🔥 Dùng để chuyển trang sau khi thành công
+import { useNavigate } from "react-router-dom";
 
 
 export default function RegisterForm() {
   const navigate = useNavigate();
 
-  // 🔥 1. Bổ sung thêm roleId vào State (Mặc định là 4 - Phục vụ)
+
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -42,7 +42,7 @@ export default function RegisterForm() {
     }
 
     try {
-      // 🔥 2. Gửi thêm roleId xuống API
+      //   Gửi thêm roleId xuống API
       await register({
         fullName: form.fullName,
         email: form.email,
@@ -54,7 +54,6 @@ export default function RegisterForm() {
 
       alert("Thêm tài khoản thành công!");
       
-      // 🔥 3. Điều hướng người dùng về lại trang Quản lý nhân viên
       navigate("/users"); 
 
     } catch (err) {
@@ -73,9 +72,8 @@ export default function RegisterForm() {
       <InputWithIcon icon={<FiUser />} name="username" placeholder="Tên đăng nhập *" onChange={handleChange} />
       <InputWithIcon icon={<FiPhone />} name="phone" placeholder="Số điện thoại" onChange={handleChange} />
       
-      {/* 🔥 KHỐI DROPDOWN CHỌN VAI TRÒ */}
+
       <div className="relative mb-4">
-        {/* Icon nằm đè lên góc trái của Select */}
         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg">
           <FiShield />
         </span>
@@ -105,7 +103,7 @@ export default function RegisterForm() {
         <Button onClick={handleRegister}>Tạo Tài Khoản</Button>
       </div>
       
-      {/* Nút Hủy để quay về trang quản lý nếu đổi ý */}
+
       <div className="mt-4 text-center">
         <button 
           onClick={() => navigate("/users")}

@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const api = axios.create({
-  baseURL: "https://localhost:7291/api",// đổi đúng port API của bạn
+  baseURL: "https://localhost:7291/api",
   withCredentials: true, // Cho phép gửi cookie nếu cần
   headers: {
     "Content-Type": "application/json"
@@ -30,7 +30,7 @@ api.interceptors.response.use(
     // Nếu API bị lỗi 401 (Hết hạn token hoặc Token không hợp lệ)
     if (error.response && error.response.status === 401 && !isLoginPage) {
       
-      // 1. Dọn dẹp sạch sẽ LocalStorage (giống như nút Đăng xuất)
+      // 1. Dọn dẹp sạch sẽ LocalStorage
       localStorage.removeItem("token");
       localStorage.removeItem("role");
       localStorage.removeItem("fullName");

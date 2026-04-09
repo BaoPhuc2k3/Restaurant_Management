@@ -27,7 +27,7 @@ export const checkDeleteMenuStatus = async (id) => {
   return res.data; // Trả về { status: 1|2|3, message: "..." }
 };
 
-// Gọi lệnh xóa thật (Có thêm tham số query deleteItems)
+// Gọi lệnh xóa thật 
 export const deleteMenu = async (id, deleteItems = false) => {
   const res = await api.delete(`/menus/${id}?deleteItems=${deleteItems}`);
   return res.data;

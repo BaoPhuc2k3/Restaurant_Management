@@ -30,7 +30,7 @@ export default function KitchenPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTable, setFilterTable] = useState("ALL");
   
-  // 🔥 STATE MỚI: Ghi nhớ các OrderId đang được mở chi tiết
+
   const [expandedOrders, setExpandedOrders] = useState({});
 
   const connectionRef = useRef(null);
@@ -54,12 +54,12 @@ export default function KitchenPage() {
     }
   };
 
-  // 🔥 1.5. Lấy danh sách Lịch sử hôm nay
+  //  1.5. Lấy danh sách Lịch sử hôm nay
   const fetchHistoryItems = async () => {
     try {
       const data = await getKitchenHistoryToday();
       setHistoryItems(data);
-      setShowHistory(true); // Mở Modal
+      setShowHistory(true); 
     } catch (err) {
       console.error("Lỗi tải lịch sử:", err);
       toast.error("Không thể tải dữ liệu lịch sử!");
@@ -89,17 +89,17 @@ export default function KitchenPage() {
     fetchPendingItems();
 
     const connection = new HubConnectionBuilder()
-      .withUrl("https://localhost:7291/kitchenHub") // Khớp port Backend
+      .withUrl("https://localhost:7291/kitchenHub") 
       .withAutomaticReconnect()
       .build();
 
     connection.start().then(() => {
-      console.log("👨‍🍳 Bếp đã sẵn sàng nhận lệnh!");
+      console.log("Bếp đã sẵn sàng nhận lệnh!");
       
       // Nghe lệnh khi có món mới hoặc có món bị hủy
       connection.on("KitchenDataUpdated", fetchPendingItems);
       connection.on("ReceiveNewOrder", () => {
-        new Audio("/assets/sounds/ding.mp3").play().catch(() => {}); // Tiếng chuông báo
+        new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3").play().catch(() => {});
         fetchPendingItems();
       });
     });
@@ -121,7 +121,7 @@ export default function KitchenPage() {
     }
   };
 
-  // 🔥 LOGIC TỐI ƯU LỊCH SỬ: Lọc và Gom nhóm theo Lượt khách (OrderId)
+
   const processedHistory = useMemo(() => {
     let filtered = historyItems;
     
@@ -144,7 +144,7 @@ export default function KitchenPage() {
         acc[item.orderId] = {
           orderId: item.orderId,
           tableName: item.tableName,
-          orderTime: item.orderTime, // Thời gian tạo đơn
+          orderTime: item.orderTime, 
           items: []
         };
       }
@@ -164,7 +164,6 @@ export default function KitchenPage() {
       <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
         
         <div className="flex items-center gap-6">
-          {/* NÚT THOÁT VỀ CỔNG PORTAL: Dành riêng cho Bếp trưởng / Admin thoát ra ngoài */}
           <button 
             onClick={() => navigate('/portal')}
             className="flex flex-col items-center justify-center w-12 h-12 bg-slate-800 hover:bg-orange-500 text-slate-400 hover:text-white rounded-xl transition-all duration-300 border border-slate-700 hover:border-orange-500 hover:shadow-[0_0_15px_rgba(249,115,22,0.5)] group"
@@ -184,7 +183,7 @@ export default function KitchenPage() {
         <div className="flex items-center gap-4">
           
           
-          {/* 🔥 NÚT LỊCH SỬ MỚI */}
+          {/* NÚT LỊCH SỬ */}
           <button 
             onClick={fetchHistoryItems}
             className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-bold transition-colors shadow-lg border border-slate-600"
@@ -272,7 +271,7 @@ export default function KitchenPage() {
         )}
       </div>
 
-      {/* 🔥 MODAL LỊCH SỬ TỐI ƯU (Dạng Accordion) */}
+      
       {showHistory && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-6 backdrop-blur-sm">
           <div className="bg-slate-800 rounded-2xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl border border-slate-600 overflow-hidden">
@@ -325,9 +324,8 @@ export default function KitchenPage() {
 
                   return (
                     <div key={group.orderId} className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-sm transition-all">
-                      
-                      {/* 🔥 HEADER ĐƠN HÀNG (BẤM VÀO ĐỂ ĐÓNG/MỞ) */}
-                      <div 
+
+                      <div
                         onClick={() => toggleOrder(group.orderId)}
                         className="bg-slate-700/40 hover:bg-slate-700/80 px-4 py-3 flex justify-between items-center cursor-pointer transition-colors"
                       >
@@ -353,7 +351,7 @@ export default function KitchenPage() {
                         </div>
                       </div>
 
-                      {/* 🔥 NỘI DUNG CHI TIẾT (CHỈ HIỆN KHI BẤM MỞ) */}
+                      {/* NỘI DUNG CHI TIẾT (CHỈ HIỆN KHI BẤM MỞ) */}
                       {isExpanded && (
                         <div className="border-t border-slate-700 bg-slate-900/30">
                           <table className="w-full text-left text-slate-300">

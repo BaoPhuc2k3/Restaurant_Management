@@ -24,7 +24,7 @@ export default function DailyDashboard() {
       try {
         const resData = await reportService.getDailySummary(selectedDate);
         
-        // 🟢 NỐI TRỰC TIẾP DỮ LIỆU TỪ BACKEND
+        // NỐI TRỰC TIẾP DỮ LIỆU TỪ BACKEND
         setData({
           summary: {
             totalOrders: resData.summary?.totalOrders || 0,

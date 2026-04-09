@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"; // 🟢 Import thêm useNavigate
 import { 
   FiClock, FiLogIn, FiLogOut, FiUser, FiCheckCircle, 
   FiAlertCircle, FiCalendar, FiX, FiChevronLeft, FiChevronRight,
-  FiPower // 🟢 Import thêm icon Nút Nguồn
+  FiPower 
 } from "react-icons/fi";
 import { 
   getAttendanceStatus, doCheckIn, doCheckOut, getEmployeeAttendanceDetail 
@@ -11,7 +11,7 @@ import {
 
 
 export default function AttendancePage() {
-  const navigate = useNavigate(); // 🟢 Khởi tạo hook điều hướng
+  const navigate = useNavigate();
   
   const [isWorking, setIsWorking] = useState(false);
   const [checkInTime, setCheckInTime] = useState(null);
@@ -77,7 +77,6 @@ export default function AttendancePage() {
     setLoadingHistory(true);
     try {
       const data = await getEmployeeAttendanceDetail(userId, selectedMonth, selectedYear);
-      // Chống lỗi Array/Object fallback an toàn
       if (Array.isArray(data)) {
         setHistoryData(data);
       } else if (data && data.sessions) {
@@ -112,14 +111,13 @@ export default function AttendancePage() {
     }
   };
 
-  // 🔥 HÀM XỬ LÝ ĐĂNG XUẤT
+
   const handleLogout = () => {
     
-      // Xóa sạch bộ nhớ
+
       localStorage.clear(); 
-      // Chuyển hướng về trang đăng nhập
-      navigate("/timekeep/login"); // Lưu ý: Sửa lại đường dẫn "/login" nếu web của bạn dùng đường dẫn khác
-    
+
+      navigate("/timekeep/login"); 
   };
 
   if (isLoading) return <div className="p-10 text-center font-bold text-gray-500">Đang kết nối hệ thống...</div>;
@@ -132,9 +130,9 @@ export default function AttendancePage() {
         
         {/* HEADER CỦA THẺ */}
         <div className="relative bg-linear-to-br from-teal-600 to-teal-800 p-8 text-white text-center">
-          
-          {/* 🔥 NÚT ĐĂNG XUẤT GÓC TRÁI */}
-          <button 
+
+          {/* NÚT ĐĂNG XUẤT GÓC TRÁI */}
+          <button
             onClick={handleLogout}
             className="absolute top-4 left-4 bg-white/20 hover:bg-red-500 p-2 rounded-full transition-colors flex items-center justify-center backdrop-blur-sm shadow-sm"
             title="Đăng xuất"
@@ -212,7 +210,7 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      {/* 🔥 MODAL LỊCH SỬ CHẤM CÔNG (Giữ nguyên) */}
+      {/* MODAL LỊCH SỬ CHẤM CÔNG (Giữ nguyên) */}
       {showHistory && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-gray-100">

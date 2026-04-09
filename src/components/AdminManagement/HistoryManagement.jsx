@@ -74,14 +74,12 @@ export default function OrderHistory() {
       toast.success("In hóa đơn thành công!");
       window.onafterprint = null;
     };
-    window.print(); // Mở hộp thoại in
+    window.print(); 
   };
   
 
   return (
     <div className="flex h-screen bg-slate-100 p-4 gap-4 overflow-hidden font-sans print:p-0 print:bg-white print:block print:h-auto">
-      
-      {/* ================= CỘT TRÁI: DANH SÁCH HÓA ĐƠN (65%) ================= */}
       <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:hidden">
         
         {/* HEADER & FILTER */}
@@ -115,7 +113,7 @@ export default function OrderHistory() {
               />
             </div>
             <button 
-              onClick={fetchHistory} // Kích hoạt khi có API
+              onClick={fetchHistory} 
               className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-sm h-[38px]"
             >
               <FiSearch /> Tìm kiếm
@@ -161,8 +159,6 @@ export default function OrderHistory() {
           </table>
         </div>
       </div>
-
-      {/* ================= CỘT PHẢI: CHI TIẾT & BILL PREVIEW (35%) ================= */}
       <div className="w-[450px] flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:w-full print:border-none print:shadow-none print:rounded-none">
         
         {selectedInvoice ? (
@@ -174,17 +170,16 @@ export default function OrderHistory() {
                 <p className="text-xs text-slate-500">{new Date(selectedInvoice.createdAt).toLocaleString("vi-VN")}</p>
               </div>
               <button 
-                onClick={handlePrint} // Lệnh in của trình duyệt (Có thể cần tinh chỉnh CSS @media print)
+                onClick={handlePrint} 
                 className="bg-slate-800 hover:bg-slate-900 text-white text-sm px-3 py-1.5 rounded flex items-center gap-2 font-medium transition-colors shadow-sm"
               >
                 <FiPrinter /> In lại
               </button>
             </div>
 
-            {/* RECEIPT PREVIEW (GIỐNG HỆT GIAO DIỆN IN BILL) */}
+            {/* RECEIPT PREVIEW */}
             <div className="flex-1 overflow-y-auto p-6 bg-gray-200 flex justify-center items-start print:p-0 print:bg-white print:overflow-visible">
               <div id="receipt-content" className="bg-white w-full shadow-md p-6 font-sans text-gray-800 relative print:absolute print:top-0 print:left-0 print:w-[80mm] print:shadow-none print:p-2">
-                {/* Răng cưa cắt giấy giả lập */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-[radial-gradient(circle,transparent_4px,#ffffff_5px)] bg-[length:10px_10px] -mt-1"></div>
 
                 {/* Tiêu đề quán */}

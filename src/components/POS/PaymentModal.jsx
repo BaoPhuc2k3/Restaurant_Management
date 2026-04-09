@@ -79,7 +79,7 @@ export default function PaymentModal({
     return Object.values(grouped);
   }, [order]);
 
-  // 🔥 HÀM XỬ LÝ CHUNG: Mở hộp thoại In -> Đợi tắt hộp thoại -> Báo thành công -> Đóng Modal & Gọi API
+  // HÀM XỬ LÝ CHUNG: Mở hộp thoại In -> Đợi tắt hộp thoại -> Báo thành công -> Đóng Modal & Gọi API
   const processPaymentAndPrint = (method) => {
     window.onafterprint = () => {
       toast.success("Thanh toán & In hóa đơn thành công!");
@@ -111,20 +111,18 @@ export default function PaymentModal({
 
   return (
     <>
-      {/* LỚP PHỦ NGOÀI CÙNG: Ẩn nền đen mờ khi in */}
       <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-40 p-4 backdrop-blur-sm">
         
-        {/* KHUNG MODAL CHÍNH: Bỏ đổ bóng, border radius khi in */}
+
         <div className="bg-white w-full max-w-[450px] max-h-[90vh] rounded shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           
-          {/* HEADER CHỨA NÚT TẮT (X): Giấu đi khi in */}
+
           <div className="px-4 py-3 flex justify-between items-center shrink-0 border-b">
             <h2 className="font-bold text-gray-800 text-lg">Xác nhận thanh toán</h2>
             <button onClick={onClose} className="text-gray-500 hover:text-red-500 text-2xl leading-none">&times;</button>
           </div>
 
-          {/* ===================== VÙNG NÀY LÀ TỜ HÓA ĐƠN SẼ ĐƯỢC IN ===================== */}
-          {/* Cấu hình print: Ép lên góc trên trái, rộng 80mm */}
+          {/* VÙNG NÀY LÀ TỜ HÓA ĐƠN SẼ ĐƯỢC IN */}
           <div id="receipt-content" className="flex-1 overflow-y-auto p-6 bg-white text-gray-800 font-sans">
 
             <div className="text-center mb-6">
@@ -194,9 +192,8 @@ export default function PaymentModal({
               <p>Hẹn gặp lại!</p>
             </div>
           </div>
-          {/* ===================== KẾT THÚC TỜ HÓA ĐƠN ===================== */}
+          {/*KẾT THÚC TỜ HÓA ĐƠN  */}
 
-          {/* PHẦN CHỌN HTTT & NÚT BẤM DƯỚI CÙNG: Giấu đi khi in */}
           <div className="shrink-0 bg-gray-50 p-4 border-t print:hidden">
             <div className="flex items-center gap-4 mb-4 text-sm font-medium text-gray-700 justify-center">
               <span>Hình thức thanh toán:</span>
@@ -233,7 +230,7 @@ export default function PaymentModal({
         </div>
       </div>
 
-      {/* MÀN HÌNH QUÉT QR (NẾU CÓ): Bắt buộc giấu đi (print:hidden) để khi in nó không che tờ Bill */}
+      {/* MÀN HÌNH QUÉT QR */}
       {showQRModal && (
         <div className="fixed inset-0 bg-slate-900/80 flex justify-center items-center z-50 p-4 backdrop-blur-sm print:hidden">
           <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-75 duration-200">

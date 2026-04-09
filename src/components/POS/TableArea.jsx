@@ -6,7 +6,7 @@ export default function TableArea({
   onSelectTable
 }) {
   
-  // 🔥 1. THUẬT TOÁN GOM NHÓM BÀN THEO KHU VỰC
+  //  1. THUẬT TOÁN GOM NHÓM BÀN THEO KHU VỰC
   const groupedTables = tables.reduce((group, table) => {
     // Nếu bàn không có khu vực, cho nó vào "Khu vực khác"
     const areaName = table.area || "Khu vực khác"; 
@@ -26,7 +26,7 @@ export default function TableArea({
   const areaNames = Object.keys(groupedTables);
 
   return (
-    <div className="space-y-6 pb-20 h-full overflow-y-auto"> {/* Khoảng cách giữa các khu vực */}
+    <div className="space-y-6 pb-20 h-full overflow-y-auto">
       
       {areaNames.length === 0 ? (
         <div className="text-center text-gray-500 py-10">Chưa có bàn nào được tạo.</div>
@@ -34,7 +34,7 @@ export default function TableArea({
         areaNames.map((area) => (
           <div key={area} className="bg-slate-300 p-4 rounded-xl border border-slate-200 ">
             
-            {/* 🔥 2. TIÊU ĐỀ KHU VỰC */}
+            {/* 2. TIÊU ĐỀ KHU VỰC */}
             <div className="flex items-center justify-between mb-4 border-b border-slate-200 pb-2">
               <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">
                 {area}
@@ -44,7 +44,7 @@ export default function TableArea({
               </span>
             </div>
 
-            {/* 🔥 3. LƯỚI BÀN CỦA RIÊNG KHU VỰC ĐÓ */}
+            {/* 3. LƯỚI BÀN CỦA RIÊNG KHU VỰC ĐÓ */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {groupedTables[area].map(table => (
                 <TableCard

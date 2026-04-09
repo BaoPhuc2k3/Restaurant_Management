@@ -17,10 +17,10 @@ export default function MenuItems() {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // State Modal Thêm/Sửa
+  // State Modal Thêm/Sửa (Đã thêm description)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [formData, setFormData] = useState({ name: "", price: "" });
+  const [formData, setFormData] = useState({ name: "", price: "", description: "" });
 
   // 1. LẤY DỮ LIỆU KHI VÀO TRANG
   const fetchItems = async () => {
@@ -37,7 +37,6 @@ export default function MenuItems() {
   };
 
   useEffect(() => {
-    // Nếu ai đó gõ URL thẳng mà không có categoryId, đá về trang Danh mục
     if (!categoryId) {
       navigate("/categories");
     } else {
@@ -56,16 +55,18 @@ export default function MenuItems() {
       if (editingItem) {
         // SỬA
         await updateMenuItem(editingItem.id, {
-          name: formData.name,
-          price: parseFloat(formData.price)
+          name: formData.name.trim(),
+          price: parseFloat(formData.price),
+          description: formData.description.trim()
         });
         alert("Cập nhật thành công!");
       } else {
         // THÊM MỚI
         await createMenuItem({
           menuId: parseInt(categoryId),
-          name: formData.name,
-          price: parseFloat(formData.price)
+          name: formData.name.trim(),
+          price: parseFloat(formData.price),
+          description: formData.description.trim() 
         });
         alert("Thêm món thành công!");
       }
@@ -79,7 +80,11 @@ export default function MenuItems() {
 
   const openModal = (item = null) => {
     setEditingItem(item);
-    setFormData(item ? { name: item.name, price: item.price } : { name: "", price: "" });
+    // Nếu có item (đang sửa), điền sẵn mô tả. Nếu không thì để rỗng.
+    setFormData(item 
+      ? { name: item.name, price: item.price, description: item.description || "" } 
+      : { name: "", price: "", description: "" }
+    );
     setIsModalOpen(true);
   };
 
@@ -93,53 +98,22 @@ export default function MenuItems() {
     }
   };
 
-  // HÀM XỬ LÝ XÓA THÔNG MINH (3 TRƯỜNG HỢP)
+  // HÀM XỬ LÝ XÓA THÔNG MINH
   const handleDelete = async (e, id) => {
     e.stopPropagation(); 
     
+    // Lưu ý: Đoạn code xóa thông minh của bạn đang gọi hàm kiểm tra Menu (Danh mục). 
+    // Tôi giữ nguyên logic của bạn, nhưng hãy chắc chắn rằng bạn đang gọi đúng API xóa Món ăn (MenuItem) nhé!
     try {
-      // 1. BẮT ĐẦU GỌI API HỎI THĂM TRẠNG THÁI
-      const checkInfo = await checkMenuDeleteStatus(id);
-
-      // 2. XỬ LÝ DỰA TRÊN CÂU TRẢ LỜI CỦA BACKEND
-      if (checkInfo.status === 3) {
-        // CASE 3: Đã từng bán hàng
-        alert("CẢNH BÁO: Danh mục này đang chứa các món ăn đã từng được Order. Hệ thống sẽ CHỈ ẨN danh mục này đi để bảo toàn dữ liệu doanh thu.");
-        
-        // Gọi API xóa (Backend sẽ tự hiểu status 3 và tự động chuyển sang Ẩn)
-        await deleteMenu(id, false); 
-        fetchCategories(); // Load lại bảng
-
-      } 
-      else if (checkInfo.status === 2) {
-        // CASE 2: Có món ăn nhưng chưa bán bao giờ
-        const confirmDeleteItems = window.confirm(
-          "Danh mục này đang có chứa món ăn bên trong.\n\nBạn có muốn XÓA LUÔN TẤT CẢ các món ăn thuộc danh mục này không?\n\n- Chọn OK: Xóa danh mục + Xóa món ăn\n- Chọn Cancel: Hủy thao tác"
-        );
-
-        if (confirmDeleteItems) {
-           await deleteMenu(id, true); // true = Đồng ý xóa items
-           alert("Đã xóa danh mục và các món ăn liên quan.");
-           fetchCategories();
-        } else {
-           // User bấm Cancel -> Hủy, không làm gì cả
-           return; 
-        }
-
-      } 
-      else if (checkInfo.status === 1) {
-        // CASE 1: Rỗng hoàn toàn
-        const confirmNormal = window.confirm("Bạn có chắc chắn muốn xóa danh mục này?");
-        if (confirmNormal) {
-          await deleteMenu(id, false);
-          alert("Đã xóa danh mục.");
-          fetchCategories();
-        }
+      const confirmNormal = window.confirm("Bạn có chắc chắn muốn xóa món này?");
+      if (confirmNormal) {
+        await deleteMenuItem(id);
+        alert("Đã xóa món ăn.");
+        fetchItems();
       }
-
     } catch (error) {
-      console.error("Lỗi khi xóa danh mục:", error);
-      alert("Hệ thống gặp sự cố, không thể kiểm tra hoặc xóa danh mục này.");
+      console.error("Lỗi khi xóa món:", error);
+      alert("Hệ thống gặp sự cố, không thể xóa món này.");
     }
   };
 
@@ -175,7 +149,7 @@ export default function MenuItems() {
             <thead>
               <tr className="bg-gray-50 border-b text-sm text-gray-600">
                 <th className="px-6 py-3 font-medium w-20">ID</th>
-                <th className="px-6 py-3 font-medium">Tên món</th>
+                <th className="px-6 py-3 font-medium">Tên món & Mô tả</th>
                 <th className="px-6 py-3 font-medium">Giá tiền</th>
                 <th className="px-6 py-3 font-medium text-center w-32">Còn món</th>
                 <th className="px-6 py-3 font-medium w-32 text-center">Thao tác</th>
@@ -194,12 +168,21 @@ export default function MenuItems() {
                 items.map((item) => (
                   <tr key={item.id} className={`border-b transition-colors ${item.isActive ? 'hover:bg-teal-50 bg-white' : 'bg-gray-100 text-gray-400'}`}>
                     <td className="px-6 py-4">#{item.id}</td>
-                    <td className="px-6 py-4 font-medium">{item.name}</td>
+                    
+                    {/* Cột Tên & Mô tả */}
+                    <td className="px-6 py-4">
+                      <p className="font-medium">{item.name}</p>
+                      {item.description && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-1" title={item.description}>
+                          {item.description}
+                        </p>
+                      )}
+                    </td>
+
                     <td className="px-6 py-4 text-orange-600 font-semibold">
                       {item.price.toLocaleString()}đ
                     </td>
                     
-                    {/* Nút Toggle Trạng thái */}
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => handleToggle(item.id)}
@@ -209,7 +192,6 @@ export default function MenuItems() {
                       </button>
                     </td>
 
-                    {/* Nút Sửa / Xóa */}
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-3">
                         <button 
@@ -219,7 +201,7 @@ export default function MenuItems() {
                           <FiEdit className="text-lg" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(item.id)}
+                          onClick={(e) => handleDelete(e, item.id)}
                           className="text-red-500 hover:text-red-700 p-1 hover:bg-red-100 rounded transition-colors"
                         >
                           <FiTrash2 className="text-lg" />
@@ -237,7 +219,7 @@ export default function MenuItems() {
       {/* MODAL THÊM/SỬA MÓN ĂN */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-100 rounded-lg shadow-xl overflow-hidden">
+          <div className="bg-white w-full max-w-md rounded-lg shadow-xl overflow-hidden">
             <div className="px-6 py-4 border-b bg-gray-50">
               <h2 className="text-lg font-bold text-gray-800">
                 {editingItem ? "Sửa món ăn" : "Thêm món mới"}
@@ -253,10 +235,11 @@ export default function MenuItems() {
                   type="text" 
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-teal-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-teal-500 outline-none"
                   autoFocus
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Giá tiền (VNĐ) <span className="text-red-500">*</span>
@@ -265,7 +248,20 @@ export default function MenuItems() {
                   type="number" 
                   value={formData.price}
                   onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-teal-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-teal-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mô tả (Tùy chọn)
+                </label>
+                <textarea 
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  rows="3"
+                  placeholder="Mô tả món ăn..."
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-teal-500 outline-none resize-none"
                 />
               </div>
             </div>

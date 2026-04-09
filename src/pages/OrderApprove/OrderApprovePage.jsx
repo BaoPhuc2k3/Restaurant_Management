@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"; // 🟢 THÊM AXIOS
+import axios from "axios"; 
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import { toast } from "react-toastify";
 
@@ -10,11 +10,10 @@ export default function OrderApprovalPage() {
   const [rejectingOrder, setRejectingOrder] = useState(null);
   const [rejectReason, setRejectReason] = useState("Hết món / Đã thanh toán");
 
-  // 1. 🟢 HÀM KIỂM TRA "NHÀ KHO" (DATABASE)
+
   const fetchPendingOrdersFromDB = async () => {
     try {
-      // Thay URL này bằng đường dẫn API GET danh sách order chưa duyệt của bạn
-      // Ví dụ: GET /api/orders/unconfirmed (như tôi đã gợi ý ở bước trước)
+
       const response = await axios.get("https://localhost:7291/api/orders/unconfirmed");
       
       // Map lại dữ liệu nếu API trả về OrderDetails thay vì items
@@ -35,7 +34,7 @@ export default function OrderApprovalPage() {
   };
 
   useEffect(() => {
-    // 2. 🟢 VỪA MỞ TRANG LÀ PHẢI VÀO NHÀ KHO KIỂM TRA NGAY
+
     fetchPendingOrdersFromDB();
 
     // 3. KẾT NỐI SIGNALR ĐỂ NGHE ĐƠN MỚI
@@ -45,9 +44,8 @@ export default function OrderApprovalPage() {
       .build();
 
     conn.on("HasNewUnconfirmedOrder", (data) => {
-      console.log("📩 Đã nhận đơn mới từ khách:", data);
+      console.log("Đã nhận đơn mới từ khách:", data);
       
-      // Cách ngon nhất: Khi có báo hiệu đơn mới, ta gọi lại API để load từ DB lên cho chắc cốp
       fetchPendingOrdersFromDB();
       
       const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3");
@@ -56,10 +54,10 @@ export default function OrderApprovalPage() {
 
     conn.start()
       .then(() => {
-        console.log("📡 SignalR Connected (Approval Page)");
+        console.log("SignalR Connected (Approval Page)");
         setConnection(conn);
       })
-      .catch(err => console.error("❌ SignalR Connection Error: ", err));
+      .catch(err => console.error("SignalR Connection Error: ", err));
 
     return () => {
       if (conn) {
@@ -71,11 +69,10 @@ export default function OrderApprovalPage() {
 
   const handleApprove = async (order) => {
     try {
-      // 4. 🟢 BẠN PHẢI GỌI API ĐỂ DUYỆT ĐƠN (ĐỔI STATUS TRONG DB)
-      // Nếu chỉ dùng connection.invoke, DB vẫn sẽ giữ Status = 0 và F5 trang lại nó lại hiện ra
+
       await axios.post(`https://localhost:7291/api/orders/approve-order/${order.id}`); 
       
-      // Duyệt xong thì xóa khỏi giao diện
+
       setPendingOrders(prev => prev.filter(o => o.id !== order.id));
       toast.success("Đã duyệt đơn và đẩy vào POS!");
 
@@ -102,7 +99,7 @@ export default function OrderApprovalPage() {
   return (
     <div className="p-6 bg-slate-900 min-h-screen text-white">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        📥 Danh sách Order chờ duyệt ({pendingOrders.length})
+        Danh sách Order chờ duyệt ({pendingOrders.length})
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {pendingOrders.map(order => (
@@ -139,7 +136,7 @@ export default function OrderApprovalPage() {
         ))}
       </div>
 
-      {/* 🔴 MODAL NHẬP LÝ DO HỦY */}
+      {/* MODAL NHẬP LÝ DO HỦY */}
       {rejectingOrder && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-white text-slate-800 p-6 rounded-lg w-96 shadow-2xl">

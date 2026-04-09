@@ -1,8 +1,8 @@
 import api from "../axios";
 
-/* =========================================================
-   A. NHÓM API DÀNH CHO MÀN HÌNH BÁN HÀNG (POS)
-========================================================= */
+
+//    A. NHÓM API DÀNH CHO MÀN HÌNH BÁN HÀNG (POS)
+
 
 // 1. Lấy đơn hàng đang hoạt động của một bàn (chưa thanh toán)
 export const getActiveOrderByTable = async (tableId) => {
@@ -35,17 +35,15 @@ export const cancelItemInOrder = async (orderDetailId, reason) => {
 };
 
 // 6. Thanh toán hóa đơn (Checkout)
-// Lưu ý: Đổi tên thành checkoutOrder cho khớp với POSPage. 
-// Chức năng hoàn toàn giống hàm createOrder cũ của bạn.
 export const checkoutOrder = async (payload) => {
     const res = await api.post("/orders/checkout", payload);
     return res.data;
 };
 
 
-/* =========================================================
-   B. NHÓM API DÀNH CHO MÀN HÌNH QUẢN LÝ / BÁO CÁO
-========================================================= */
+
+//    B. NHÓM API DÀNH CHO MÀN HÌNH QUẢN LÝ / BÁO CÁO
+
 
 // 7. Lấy danh sách tất cả hóa đơn (Dùng cho trang Quản lý hóa đơn / Lịch sử)
 export const getAllOrders = async () => {
